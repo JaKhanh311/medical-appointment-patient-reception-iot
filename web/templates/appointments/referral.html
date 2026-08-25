@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chuyển hồ sơ bệnh nhân - OPDFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'dashboard' %}"
+           class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-outline hover:text-primary hover:bg-surface-container-highest transition-colors">
+            <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+        </a>
+        <div>
+            <h1 class="font-h2 text-h2 text-on-surface">Chuyển hồ sơ bệnh nhân</h1>
+            <p class="font-body-md text-body-md text-outline mt-1">Chuyển bệnh nhân đến bác sĩ hoặc chuyên khoa khác</p>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl {% if message.tags == 'error' %}bg-error-container text-on-error-container{% else %}bg-[#e6f4ea] text-[#1e6a34]{% endif %}">
+            <span class="material-symbols-outlined text-[18px]">{% if message.tags == 'error' %}error{% else %}check_circle{% endif %}</span>
+            <span class="font-body-md text-body-md">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Patient Info Card -->
+    <div class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-outline-variant/30 mb-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-[20px] text-on-primary-container">person</span>
+            </div>
+            <div>
+                <h2 class="font-h3 text-h3 text-on-surface">{{ patient.name }}</h2>
+                <p class="font-body-md text-body-md text-outline">
+                    {% if patient.age %}{{ patient.age }} tuổi{% endif %}
+                    {% if patient.gender %} · {{ patient.gender }}{% endif %}
+                    {% if patient.phone %} · {{ patient.phone }}{% endif %}
+                </p>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+            <div class="bg-surface-container-low rounded-xl px-4 py-3">
+                <span class="text-outline font-label-sm text-label-sm uppercase">Ngày khám</span>
+                <p class="font-data-mono text-data-mono text-on-surface mt-1">{{ appointment.date }}</p>
+            </div>
+            <div class="bg-surface-container-low rounded-xl px-4 py-3">
+                <span class="text-outline font-label-sm text-label-sm uppercase">Chuyên khoa</span>
+                <p class="font-data-mono text-data-mono text-on-surface mt-1">{{ appointment.specialty|default:"—" }}</p>
+            </div>
+            <div class="bg-surface-container-low rounded-xl px-4 py-3">
+                <span class="text-outline font-label-sm text-label-sm uppercase">Lý do khám</span>
+                <p class="font-data-mono text-data-mono text-on-surface mt-1">{{ appointment.reason|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Referral Form -->
+    <form method="post" class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-outline-variant/30">
+        {% csrf_token %}
+
+        <h3 class="font-h3 text-h3 text-on-surface mb-6 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">swap_horiz</span>
+            Thông tin chuyển
+        </h3>
+
+        <div class="space-y-5">
+            <!-- Target Specialty -->
+            <div>
+                <label for="target_specialty_id" class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">
+                    Chuyên khoa tiếp nhận
+                </label>
+                <select id="target_specialty_id" name="target_specialty_id"
+                        class="w-full px-4 py-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors">
+                    <option value="">— Chọn chuyên khoa —</option>
+                    {% for spec in all_specialties %}
+                    <option value="{{ spec.id }}" data-specialty-id="{{ spec.id }}"
+                            {% if form_data.target_specialty_id == spec.id|stringformat:"s" %}selected{% endif %}>
+                        {{ spec.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Target Doctor -->
+            <div>
+                <label for="target_doctor_id" class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">
+                    Bác sĩ tiếp nhận <span class="text-error">*</span>
+                </label>
+                <select id="target_doctor_id" name="target_doctor_id" required
+                        class="w-full px-4 py-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors">
+                    <option value="">— Chọn bác sĩ —</option>
+                    {% for doc in all_doctors %}
+                    <option value="{{ doc.id }}" data-specialty-id="{{ doc.specialtyID }}"
+                            {% if form_data.target_doctor_id == doc.id|stringformat:"s" %}selected{% endif %}>
+                        {{ doc.name }}{% if doc.specialtyName %} ({{ doc.specialtyName }}){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Referral Date -->
+            <div>
+                <label for="referral_date" class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">
+                    Ngày hẹn chuyển
+                </label>
+                <input type="date" id="referral_date" name="referral_date"
+                       value="{{ form_data.referral_date }}"
+                       class="w-full px-4 py-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors" />
+            </div>
+
+            <!-- Session -->
+            <div>
+                <label class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">
+                    Buổi khám
+                </label>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer px-4 py-3 rounded-xl border border-outline-variant/60 hover:border-primary/50 transition-colors {% if form_data.session == 'morning' %}border-primary bg-primary-fixed/10{% endif %}">
+                        <input type="radio" name="session" value="morning"
+                               {% if form_data.session == 'morning' %}checked{% endif %}
+                               class="w-4 h-4 text-primary focus:ring-primary" />
+                        <span class="font-body-md text-body-md text-on-surface">Buổi sáng</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer px-4 py-3 rounded-xl border border-outline-variant/60 hover:border-primary/50 transition-colors {% if form_data.session == 'afternoon' %}border-primary bg-primary-fixed/10{% endif %}">
+                        <input type="radio" name="session" value="afternoon"
+                               {% if form_data.session == 'afternoon' %}checked{% endif %}
+                               class="w-4 h-4 text-primary focus:ring-primary" />
+                        <span class="font-body-md text-body-md text-on-surface">Buổi chiều</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Referral Reason -->
+            <div>
+                <label for="reason" class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">
+                    Lý do chuyển <span class="text-error">*</span>
+                </label>
+                <textarea id="reason" name="reason" rows="3" required
+                          placeholder="Nhập lý do chuyển bệnh nhân..."
+                          class="w-full px-4 py-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors resize-none">{{ form_data.reason }}</textarea>
+            </div>
+
+            <!-- Priority Note -->
+            <div>
+                <label for="priority_note" class="block font-label-sm text-label-sm text-on-surface-variant uppercase mb-2">
+                    Ghi chú ưu tiên <span class="text-outline">(không bắt buộc)</span>
+                </label>
+                <textarea id="priority_note" name="priority_note" rows="2"
+                          placeholder="Ghi chú thêm cho bác sĩ tiếp nhận..."
+                          class="w-full px-4 py-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors resize-none">{{ form_data.priority_note }}</textarea>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-outline-variant/30">
+            <a href="{% url 'dashboard' %}"
+               class="px-6 py-3 rounded-full border border-outline-variant/60 text-on-surface font-data-mono text-data-mono hover:bg-surface-container-high transition-colors">
+                Hủy bỏ
+            </a>
+            <button type="submit"
+                    class="px-6 py-3 rounded-full bg-primary text-on-primary font-data-mono text-data-mono shadow-sm shadow-primary/20 hover:bg-primary-container hover:text-on-primary-container transition-colors flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">send</span>
+                Chuyển hồ sơ
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- JavaScript: Filter doctors by specialty -->
+<script>
+(function() {
+    const specialtySelect = document.getElementById('target_specialty_id');
+    const doctorSelect = document.getElementById('target_doctor_id');
+
+    if (!specialtySelect || !doctorSelect) return;
+
+    // Store all doctor options
+    const allDoctorOptions = Array.from(doctorSelect.querySelectorAll('option[data-specialty-id]'));
+    const placeholderOption = doctorSelect.querySelector('option[value=""]');
+
+    function filterDoctors() {
+        const selectedSpecialty = specialtySelect.value;
+        const currentDoctorValue = doctorSelect.value;
+
+        // Remove all options except placeholder
+        while (doctorSelect.options.length > 1) {
+            doctorSelect.remove(1);
+        }
+
+        // Add filtered options
+        let hasCurrentValue = false;
+        allDoctorOptions.forEach(function(opt) {
+            const docSpecialty = opt.getAttribute('data-specialty-id') || '';
+            if (!selectedSpecialty || docSpecialty === selectedSpecialty) {
+                const newOpt = opt.cloneNode(true);
+                doctorSelect.appendChild(newOpt);
+                if (newOpt.value === currentDoctorValue) {
+                    hasCurrentValue = true;
+                }
+            }
+        });
+
+        // Reset selection if current value is no longer available
+        if (hasCurrentValue) {
+            doctorSelect.value = currentDoctorValue;
+        } else {
+            doctorSelect.value = '';
+        }
+    }
+
+    specialtySelect.addEventListener('change', filterDoctors);
+
+    // Run filter on page load if specialty is pre-selected
+    if (specialtySelect.value) {
+        filterDoctors();
+    }
+})();
+</script>
+{% endblock %}

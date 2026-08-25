@@ -1,0 +1,612 @@
+﻿{% extends 'base.html' %}
+{% block title %}Thống kê bệnh nhân – OPDFlow{% endblock %}
+
+{% block extra_style %}
+<style>
+.statistics-page {
+    position: relative;
+    background:
+        radial-gradient(circle at top right, rgba(0, 104, 95, 0.10), transparent 24%),
+        linear-gradient(180deg, #f6faf8 0%, #eef4f2 100%);
+    border: 1px solid rgba(182, 198, 196, 0.56);
+    border-radius: 1.75rem;
+    padding: 1.25rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.statistics-shell {
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px solid rgba(223, 234, 231, 0.96);
+    border-radius: 1.5rem;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(12px);
+    transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+}
+
+.statistics-shell:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 44px rgba(15, 23, 42, 0.10);
+    border-color: rgba(0, 104, 95, 0.12);
+}
+
+.statistics-hero {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(0, 104, 95, 0.96), rgba(0, 78, 71, 0.92));
+    border: 1px solid rgba(0, 78, 71, 0.34);
+    border-radius: 1.75rem;
+    padding: 1.5rem;
+    color: #ffffff;
+    box-shadow: 0 20px 48px rgba(0, 78, 71, 0.20);
+}
+
+.statistics-hero::after {
+    content: '';
+    position: absolute;
+    inset: auto -5rem -7rem auto;
+    width: 16rem;
+    height: 16rem;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgba(133, 213, 201, 0.24), rgba(133, 213, 201, 0));
+    pointer-events: none;
+}
+
+.hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.hero-kicker .material-symbols-outlined,
+.hero-period-link .material-symbols-outlined,
+.section-title .material-symbols-outlined,
+.summary-badge.material-symbols-outlined {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.hero-period-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.8rem 1rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.82);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.hero-period-link:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+}
+
+.hero-period-link.is-active {
+    background: #ffffff;
+    color: #004e47;
+    border-color: #ffffff;
+}
+
+.control-panel {
+    background: linear-gradient(180deg, rgba(250, 252, 251, 0.96), rgba(242, 246, 244, 0.94));
+    border: 1px solid rgba(220, 229, 227, 0.96);
+    border-radius: 1.5rem;
+    padding: 1.25rem;
+}
+
+.summary-card {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.84);
+    border: 1px solid rgba(222, 232, 229, 0.96);
+    border-radius: 1.35rem;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+    transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+}
+
+.summary-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: var(--card-accent, #00685f);
+}
+
+.summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 22px 40px rgba(15, 23, 42, 0.10);
+    border-color: rgba(0, 104, 95, 0.16);
+}
+
+.summary-card-booked { --card-accent: #2563eb; }
+.summary-card-arrived { --card-accent: #008378; }
+.summary-card-cancelled { --card-accent: #ba1a1a; }
+.summary-card-no-show { --card-accent: #fea619; }
+
+.summary-badge {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.summary-badge-booked { background: rgba(37, 99, 235, 0.14); color: #2563eb; }
+.summary-badge-arrived { background: rgba(0, 131, 120, 0.14); color: #008378; }
+.summary-badge-cancelled { background: rgba(255, 218, 214, 1); color: #ba1a1a; }
+.summary-badge-no-show { background: rgba(255, 221, 183, 0.88); color: #855400; }
+
+.chart-shell {
+    padding: 1.5rem;
+}
+
+.table-shell {
+    padding: 1.5rem;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(224, 232, 230, 0.9);
+}
+
+.table-head-row {
+    background: rgba(235, 239, 237, 0.72);
+}
+
+.table-row-hover {
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table-row-hover:hover {
+    transform: translateY(-1px);
+    background: rgba(239, 245, 242, 0.95);
+    box-shadow: inset 4px 0 0 #00685f;
+}
+
+.count-chip {
+    background: rgba(37, 99, 235, 0.10);
+    border: 1px solid rgba(37, 99, 235, 0.24);
+}
+
+.column-toggle-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 9999px;
+    background: rgba(237, 243, 242, 0.95);
+    border: 1px solid rgba(136, 158, 156, 0.36);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+}
+
+.column-toggle-chip input {
+    accent-color: #00685f;
+}
+
+.is-column-hidden {
+    display: none;
+}
+
+.pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0 0.9rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(136, 158, 156, 0.36);
+    background: rgba(237, 243, 242, 0.95);
+    color: #171d1c;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.pagination-btn:hover {
+    transform: translateY(-1px);
+    background: rgba(228, 238, 236, 0.95);
+}
+
+.pagination-btn.is-active {
+    background: #00685f;
+    color: #ffffff;
+    border-color: #00685f;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 768px) {
+    .statistics-page {
+        padding: 0.85rem;
+    }
+
+    .statistics-hero,
+    .chart-shell,
+    .table-shell,
+    .control-panel {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="statistics-page">
+<section class="statistics-hero mb-gutter">
+    <div class="relative z-[1] flex flex-col xl:flex-row xl:items-end justify-between gap-6">
+        <div class="max-w-3xl">
+            <div class="hero-kicker mb-4">
+                <span class="material-symbols-outlined text-[16px]">monitoring</span>
+                Clinical Analytics
+            </div>
+            <h2 class="font-h1 text-[34px] lg:text-[40px] leading-tight mb-2">Thống kê bệnh nhân</h2>
+            <p class="font-body-lg text-[rgba(255,255,255,0.82)] max-w-2xl">Theo dõi xu hướng đặt lịch, đã đến, đã hủy và không đến {{ period_name }} trong một giao diện phân tích rõ ràng, dễ đọc và phù hợp môi trường lâm sàng.</p>
+            <div class="mt-4 font-data-mono text-data-mono text-[rgba(255,255,255,0.78)]">Cập nhật: {{ today|date:"d/m/Y" }}</div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+        <a href="?period=day"
+           class="hero-period-link font-data-mono text-data-mono {% if period == 'day' %}is-active{% endif %}">
+            <span class="material-symbols-outlined text-[16px]">calendar_today</span>Ngày
+        </a>
+        <a href="?period=week"
+           class="hero-period-link font-data-mono text-data-mono {% if period == 'week' %}is-active{% endif %}">
+            <span class="material-symbols-outlined text-[16px]">date_range</span>Tuần
+        </a>
+        <a href="?period=month"
+           class="hero-period-link font-data-mono text-data-mono {% if period == 'month' %}is-active{% endif %}">
+            <span class="material-symbols-outlined text-[16px]">calendar_month</span>Tháng
+        </a>
+        <a href="?period=year"
+           class="hero-period-link font-data-mono text-data-mono {% if period == 'year' %}is-active{% endif %}">
+            <span class="material-symbols-outlined text-[16px]">show_chart</span>Năm
+        </a>
+    </div>
+</section>
+
+<!-- Custom date range filter -->
+<section class="statistics-shell control-panel mb-gutter">
+    <form method="get" class="flex flex-col lg:flex-row lg:items-end gap-4">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block font-label-sm text-label-sm text-outline uppercase tracking-wider mb-2">
+                <span class="material-symbols-outlined text-[14px] align-middle">date_range</span>
+                Lọc theo khoảng thời gian
+            </label>
+            <p class="font-body-md text-body-md text-outline">Chọn ngày bắt đầu và ngày kết thúc để xem thống kê tuỳ chỉnh.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 items-end">
+            <div>
+                <label for="dateFrom" class="block font-label-sm text-[11px] text-outline uppercase tracking-wider mb-1">Từ ngày</label>
+                <input type="date" id="dateFrom" name="date_from" value="{{ date_from }}"
+                       class="rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-3 py-2 font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+            </div>
+            <div>
+                <label for="dateTo" class="block font-label-sm text-[11px] text-outline uppercase tracking-wider mb-1">Đến ngày</label>
+                <input type="date" id="dateTo" name="date_to" value="{{ date_to }}"
+                       class="rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-3 py-2 font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
+            </div>
+            <button type="submit" class="px-5 py-2 rounded-full bg-primary text-on-primary font-semibold text-sm hover:bg-primary-container transition-colors inline-flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">filter_alt</span>
+                Áp dụng
+            </button>
+            {% if period == 'range' %}
+            <a href="?period=month" class="px-4 py-2 rounded-full border border-outline-variant/60 text-outline hover:text-on-surface hover:border-on-surface text-sm transition-colors inline-flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">close</span>
+                Bỏ lọc
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</section>
+
+<section class="statistics-shell control-panel mb-gutter">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div>
+            <h3 class="font-h3 text-h3 text-on-surface mb-1">Tùy chọn hiển thị</h3>
+            <p class="font-body-md text-body-md text-outline">Chọn các nhóm dữ liệu muốn hiển thị trên thẻ thống kê, biểu đồ và bảng.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <label class="column-toggle-chip font-data-mono text-data-mono text-on-surface">
+                <input type="checkbox" class="js-column-toggle" data-column="booked" checked>
+                Đặt lịch
+            </label>
+            <label class="column-toggle-chip font-data-mono text-data-mono text-on-surface">
+                <input type="checkbox" class="js-column-toggle" data-column="arrived" checked>
+                Đã đến
+            </label>
+            <label class="column-toggle-chip font-data-mono text-data-mono text-on-surface">
+                <input type="checkbox" class="js-column-toggle" data-column="cancelled" checked>
+                Đã hủy
+            </label>
+            <label class="column-toggle-chip font-data-mono text-data-mono text-on-surface">
+                <input type="checkbox" class="js-column-toggle" data-column="no_show" checked>
+                Không đến
+            </label>
+        </div>
+    </div>
+</section>
+
+<!-- Summary stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter mb-gutter">
+    <div class="summary-card summary-card-booked p-md text-center js-summary-card" data-column="booked">
+        <span class="summary-badge summary-badge-booked material-symbols-outlined text-[28px]">event_note</span>
+        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-1">Bệnh nhân đặt lịch</div>
+        <div class="font-h2 text-[30px] leading-none text-on-surface">{{ totals.booked }}</div>
+    </div>
+    <div class="summary-card summary-card-arrived p-md text-center js-summary-card" data-column="arrived">
+        <span class="summary-badge summary-badge-arrived material-symbols-outlined text-[28px]">how_to_reg</span>
+        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-1">Đã đến khám</div>
+        <div class="font-h2 text-[30px] leading-none text-on-surface">{{ totals.arrived }}</div>
+    </div>
+    <div class="summary-card summary-card-cancelled p-md text-center js-summary-card" data-column="cancelled">
+        <span class="summary-badge summary-badge-cancelled material-symbols-outlined text-[28px]">event_busy</span>
+        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-1">Đã hủy</div>
+        <div class="font-h2 text-[30px] leading-none text-on-surface">{{ totals.cancelled }}</div>
+    </div>
+    <div class="summary-card summary-card-no-show p-md text-center js-summary-card" data-column="no_show">
+        <span class="summary-badge summary-badge-no-show material-symbols-outlined text-[28px]">person_off</span>
+        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-1">Không đến</div>
+        <div class="font-h2 text-[30px] leading-none text-on-surface">{{ totals.no_show }}</div>
+    </div>
+</div>
+
+<!-- Chart -->
+<div class="statistics-shell chart-shell mb-gutter">
+    <div class="section-title">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">bar_chart</span>
+            <h2 class="font-h3 text-h3 text-on-surface">Biểu đồ theo trạng thái</h2>
+        </div>
+        <div class="font-data-mono text-data-mono text-outline">Xu hướng theo {{ period_name }}</div>
+    </div>
+    <canvas id="appointmentChart" height="70"></canvas>
+</div>
+
+<!-- Detail table -->
+<section class="statistics-shell table-shell">
+    <div class="section-title">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">table_chart</span>
+            <h2 class="font-h3 text-h3 text-on-surface">Chi tiết thống kê</h2>
+        </div>
+        <div class="font-data-mono text-data-mono text-outline">Tối đa 15 dòng / trang</div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="table-head-row font-label-sm text-label-sm text-outline border-b border-surface-variant/70 uppercase tracking-wider">
+                    <th class="pb-3 font-medium">
+                        {% if period == 'day' %}Ngày{% elif period == 'week' %}Tuần{% elif period == 'year' %}Năm{% else %}Tháng{% endif %}
+                    </th>
+                    <th class="pb-3 font-medium js-col-header" data-column="booked">Đặt lịch</th>
+                    <th class="pb-3 font-medium js-col-header" data-column="arrived">Đã đến</th>
+                    <th class="pb-3 font-medium js-col-header" data-column="cancelled">Đã hủy</th>
+                    <th class="pb-3 font-medium js-col-header" data-column="no_show">Không đến</th>
+                    <th class="pb-3 font-medium text-right">Tổng</th>
+                </tr>
+            </thead>
+            <tbody class="font-body-md text-body-md text-on-surface">
+                {% for item in stats %}
+                <tr class="table-row-hover border-b border-surface-variant/60 js-stats-row">
+                    <td class="py-3 pr-4 font-data-mono text-data-mono">
+                        {% if period == 'day' %}{{ item.date|date:"d/m/Y" }}
+                        {% elif period == 'week' %}{{ item.week }}
+                        {% elif period == 'year' %}{{ item.year }}
+                        {% else %}{{ item.month }}{% endif %}
+                    </td>
+                    <td class="py-3 pr-4 js-col-cell" data-column="booked">
+                        <span class="count-chip px-3 py-1 text-[#2563eb] rounded-full font-data-mono text-data-mono">{{ item.booked_count }}</span>
+                    </td>
+                    <td class="py-3 pr-4 font-data-mono text-data-mono js-col-cell" data-column="arrived">{{ item.arrived_count }}</td>
+                    <td class="py-3 pr-4 font-data-mono text-data-mono js-col-cell" data-column="cancelled">{{ item.cancelled_count }}</td>
+                    <td class="py-3 pr-4 font-data-mono text-data-mono js-col-cell" data-column="no_show">{{ item.no_show_count }}</td>
+                    <td class="py-3 text-right">
+                        <span class="font-data-mono text-data-mono text-on-surface-variant">{{ item.count }}</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="js-empty-row">
+                    <td colspan="6" class="py-12 text-center">
+                        <span class="material-symbols-outlined text-[48px] text-outline/30 block mb-3">query_stats</span>
+                        <p class="font-body-md text-body-md text-outline">Chưa có dữ liệu thống kê</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="statsPagination" class="mt-5 flex flex-col md:flex-row md:items-center justify-between gap-3 hidden">
+        <div id="statsPaginationInfo" class="font-body-md text-body-md text-outline"></div>
+        <div id="statsPaginationControls" class="flex flex-wrap items-center gap-2"></div>
+    </div>
+</section>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const labels = {{ labels|safe }};
+const bookedData = {{ booked_data|safe }};
+const arrivedData = {{ arrived_data|safe }};
+const cancelledData = {{ cancelled_data|safe }};
+const noShowData = {{ no_show_data|safe }};
+
+const ctx = document.getElementById('appointmentChart').getContext('2d');
+const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Đặt lịch',
+                key: 'booked',
+                data: bookedData,
+                backgroundColor: 'rgba(37,99,235,0.72)',
+                borderColor: '#2563eb',
+                borderWidth: 1,
+                borderRadius: 6,
+            },
+            {
+                label: 'Đã đến',
+                key: 'arrived',
+                data: arrivedData,
+                backgroundColor: 'rgba(0,131,120,0.55)',
+                borderColor: '#008378',
+                borderWidth: 1,
+                borderRadius: 6,
+            },
+            {
+                label: 'Đã hủy',
+                key: 'cancelled',
+                data: cancelledData,
+                backgroundColor: 'rgba(186,26,26,0.65)',
+                borderColor: '#ba1a1a',
+                borderWidth: 1,
+                borderRadius: 6,
+            },
+            {
+                label: 'Không đến',
+                key: 'no_show',
+                data: noShowData,
+                backgroundColor: 'rgba(254,166,25,0.65)',
+                borderColor: '#fea619',
+                borderWidth: 1,
+                borderRadius: 6,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: true, position: 'bottom' } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1, color: '#6f7977' }, grid: { color: '#dce5e3' } },
+            x: { ticks: { color: '#6f7977' }, grid: { display: false } }
+        }
+    }
+});
+
+const toggles = Array.from(document.querySelectorAll('.js-column-toggle'));
+
+function setColumnVisibility(columnKey, isVisible) {
+    document.querySelectorAll(`.js-summary-card[data-column="${columnKey}"]`).forEach((el) => {
+        el.classList.toggle('is-column-hidden', !isVisible);
+    });
+
+    document.querySelectorAll(`.js-col-header[data-column="${columnKey}"], .js-col-cell[data-column="${columnKey}"]`).forEach((el) => {
+        el.classList.toggle('is-column-hidden', !isVisible);
+    });
+
+    chart.data.datasets.forEach((dataset) => {
+        if (dataset.key === columnKey) {
+            dataset.hidden = !isVisible;
+        }
+    });
+    chart.update();
+}
+
+toggles.forEach((toggle) => {
+    toggle.addEventListener('change', function () {
+        const checkedCount = toggles.filter((item) => item.checked).length;
+        if (!this.checked && checkedCount === 0) {
+            this.checked = true;
+            return;
+        }
+        setColumnVisibility(this.dataset.column, this.checked);
+    });
+});
+
+const ROWS_PER_PAGE = 15;
+const statsRows = Array.from(document.querySelectorAll('.js-stats-row'));
+const paginationShell = document.getElementById('statsPagination');
+const paginationInfo = document.getElementById('statsPaginationInfo');
+const paginationControls = document.getElementById('statsPaginationControls');
+let currentPage = 1;
+
+function renderStatsPagination() {
+    if (!paginationShell || !paginationInfo || !paginationControls) return;
+
+    const totalRows = statsRows.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / ROWS_PER_PAGE));
+
+    if (totalRows <= ROWS_PER_PAGE) {
+        paginationShell.classList.add('hidden');
+        statsRows.forEach((row) => row.classList.remove('hidden'));
+        return;
+    }
+
+    if (currentPage > totalPages) {
+        currentPage = totalPages;
+    }
+
+    paginationShell.classList.remove('hidden');
+
+    const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+    const endIndex = startIndex + ROWS_PER_PAGE;
+
+    statsRows.forEach((row, index) => {
+        row.classList.toggle('hidden', index < startIndex || index >= endIndex);
+    });
+
+    paginationInfo.textContent = `Hiển thị ${startIndex + 1}-${Math.min(endIndex, totalRows)} / ${totalRows} dòng`;
+
+    const pageButtons = [];
+    pageButtons.push(`<button type="button" class="pagination-btn" data-page="prev" ${currentPage === 1 ? 'disabled' : ''}>Trước</button>`);
+    for (let page = 1; page <= totalPages; page++) {
+        pageButtons.push(`<button type="button" class="pagination-btn ${page === currentPage ? 'is-active' : ''}" data-page="${page}">${page}</button>`);
+    }
+    pageButtons.push(`<button type="button" class="pagination-btn" data-page="next" ${currentPage === totalPages ? 'disabled' : ''}>Sau</button>`);
+    paginationControls.innerHTML = pageButtons.join('');
+}
+
+if (paginationControls) {
+    paginationControls.addEventListener('click', function (event) {
+        const button = event.target.closest('[data-page]');
+        if (!button || button.disabled) return;
+
+        const action = button.dataset.page;
+        const totalPages = Math.max(1, Math.ceil(statsRows.length / ROWS_PER_PAGE));
+
+        if (action === 'prev') {
+            currentPage = Math.max(1, currentPage - 1);
+        } else if (action === 'next') {
+            currentPage = Math.min(totalPages, currentPage + 1);
+        } else {
+            currentPage = Number(action) || 1;
+        }
+
+        renderStatsPagination();
+    });
+}
+
+renderStatsPagination();
+</script>
+{% endblock %}

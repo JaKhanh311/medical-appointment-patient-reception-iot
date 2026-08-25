@@ -1,0 +1,275 @@
+﻿{% extends 'base.html' %}
+{% block title %}OPDFlow – Thêm bệnh nhân{% endblock %}
+
+{% block extra_style %}
+<style>
+.step-shell {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(242, 247, 246, 0.78));
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06), 0 3px 12px rgba(15, 23, 42, 0.04);
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.step-shell:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 22px 46px rgba(15, 23, 42, 0.08), 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.cluster-card {
+    background: rgba(255, 255, 255, 0.66);
+    border: 1px solid rgba(188, 201, 200, 0.28);
+    border-radius: 1rem;
+    padding: 1rem;
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.cluster-card:hover {
+    background: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.05);
+}
+
+.cluster-title {
+    color: rgb(61 73 73 / 0.96);
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.vital-input {
+    background: rgba(242, 244, 246, 0.92);
+    border: 1px solid rgba(188, 201, 200, 0.44);
+    border-radius: 0.75rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.95rem;
+    color: rgb(25 28 30 / 0.95);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.vital-input:focus {
+    outline: none;
+    border-color: rgba(0, 106, 106, 0.7);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 0 0 3px rgba(0, 139, 139, 0.14), 0 8px 20px rgba(0, 106, 106, 0.12);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-gutter">
+    <h2 class="font-h1 text-h1 text-on-background mb-1">Thêm bệnh nhân</h2>
+    <p class="font-body-lg text-body-lg text-outline">Bước 1: Lưu thông tin bệnh nhân. Bước 2: Đặt lịch khám.</p>
+</div>
+
+<!-- Step 1: Patient info -->
+<div class="step-shell rounded-2xl p-lg mb-gutter">
+    <div class="flex items-center gap-3 mb-5 pb-4 border-b border-surface-variant">
+        <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold shrink-0">1</div>
+        <div>
+            <h3 class="font-h3 text-h3 text-on-surface">Thông tin bệnh nhân</h3>
+            <p class="font-body-md text-body-md text-outline">Nhập đầy đủ thông tin cá nhân</p>
+        </div>
+    </div>
+
+    <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+        {% csrf_token %}
+        <input type="hidden" name="form_action" value="create_patient">
+
+        <div class="md:col-span-2 cluster-card">
+            <h4 class="font-label-sm text-label-sm uppercase tracking-wider cluster-title">Danh tính cơ bản</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Họ tên <span class="text-error">*</span></label>
+                    <input type="text" name="name" value="{{ form_data.name }}" required class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Biệt danh</label>
+                    <input type="text" name="nickname" value="{{ form_data.nickname }}" class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Ngày sinh <span class="text-error">*</span></label>
+                    <input type="date" name="birthdate" value="{{ form_data.birthdate }}" required class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Giới tính <span class="text-error">*</span></label>
+                    <select name="gender" required class="vital-input">
+                        <option value="">Chọn giới tính</option>
+                        <option value="Nam" {% if form_data.gender == 'Nam' %}selected{% endif %}>Nam</option>
+                        <option value="Nữ" {% if form_data.gender == 'Nữ' %}selected{% endif %}>Nữ</option>
+                        <option value="Khác" {% if form_data.gender == 'Khác' %}selected{% endif %}>Khác</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Vai trò</label>
+                    <select name="role" class="vital-input">
+                        <option value="self" {% if form_data.role == 'self' %}selected{% endif %}>Tự đăng ký khám</option>
+                        <option value="other" {% if form_data.role == 'other' %}selected{% endif %}>Người thân đăng ký</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Nghề nghiệp</label>
+                    <input type="text" name="occupation" value="{{ form_data.occupation }}" class="vital-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="md:col-span-2 cluster-card">
+            <h4 class="font-label-sm text-label-sm uppercase tracking-wider cluster-title">Liên hệ & hành chính</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Số điện thoại <span class="text-error">*</span></label>
+                    <input type="text" name="phone" value="{{ form_data.phone }}" required class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Email</label>
+                    <input type="email" name="email" value="{{ form_data.email }}" class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1 md:col-span-2">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Địa chỉ</label>
+                    <input type="text" name="address" value="{{ form_data.address }}" class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Nhóm ưu tiên</label>
+                    <input type="text" name="priority_group" value="{{ form_data.priority_group }}" placeholder="VD: child_under_6" class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Quốc tịch</label>
+                    <input type="text" name="nationality" value="{{ form_data.nationality }}" class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Dân tộc</label>
+                    <input type="text" name="ethnicity" value="{{ form_data.ethnicity }}" class="vital-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="md:col-span-2 cluster-card">
+            <h4 class="font-label-sm text-label-sm uppercase tracking-wider cluster-title">Giấy tờ & ghi chú y tế</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">CMND / CCCD</label>
+                    <input type="text" name="identity_number" value="{{ form_data.identity_number }}" class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Tiền sử bệnh</label>
+                    <textarea name="medical_history" rows="3" placeholder="Ghi chú tiền sử bệnh nếu có..." class="vital-input resize-none">{{ form_data.medical_history }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="md:col-span-2 flex justify-end gap-3 pt-2 border-t border-surface-variant mt-2">
+            <a href="{% url 'dashboard' %}" class="px-5 py-2 bg-surface-container border border-outline-variant/40 rounded-lg font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors">Quay lại dashboard</a>
+            <button type="submit" class="px-6 py-2 bg-gradient-to-b from-primary to-surface-tint text-on-primary rounded-lg font-data-mono text-data-mono shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">person_add</span> Lưu bệnh nhân (Bước 1)
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Step 2: Appointment scheduling -->
+{% if selected_patient %}
+<div class="step-shell rounded-2xl p-lg mb-gutter">
+    <div class="flex items-center gap-3 mb-5 pb-4 border-b border-surface-variant">
+        <div class="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold shrink-0">2</div>
+        <div>
+            <h3 class="font-h3 text-h3 text-on-surface">Đặt lịch khám</h3>
+            <p class="font-body-md text-body-md text-outline">Chọn thời gian và thông tin lịch hẹn</p>
+        </div>
+    </div>
+
+    <!-- Selected patient banner -->
+    <div class="cluster-card !bg-primary/5 border-primary/20 mb-5 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold shrink-0">
+            {{ selected_patient.name|slice:":1"|upper }}
+        </div>
+        <div>
+            <div class="font-h3 text-h3 text-on-surface">{{ selected_patient.name }}</div>
+            {% if selected_patient.phone %}<div class="font-body-md text-body-md text-outline">{{ selected_patient.phone }}</div>{% endif %}
+        </div>
+    </div>
+
+    <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+        {% csrf_token %}
+        <input type="hidden" name="form_action" value="create_appointment">
+        <input type="hidden" name="patient_id" value="{{ selected_patient.patientID|default:selected_patient.id }}">
+
+        <div class="md:col-span-2 cluster-card">
+            <h4 class="font-label-sm text-label-sm uppercase tracking-wider cluster-title">Thông tin lịch hẹn</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Ngày khám <span class="text-error">*</span></label>
+                    <input type="date" name="appointment_date" value="{{ form_data.appointment_date }}" required class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Giờ khám <span class="text-error">*</span></label>
+                    <input type="time" name="appointment_time" value="{{ form_data.appointment_time }}" required class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Trạng thái</label>
+                    <select name="status" class="vital-input">
+                        <option value="scheduled" {% if form_data.status == 'scheduled' %}selected{% endif %}>Chưa đến</option>
+                        <option value="waiting" {% if form_data.status == 'waiting' %}selected{% endif %}>Đang chờ khám</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Loại đặt lịch</label>
+                    <select name="booking_type" class="vital-input">
+                        <option value="walk-in" {% if form_data.booking_type == 'walk-in' %}selected{% endif %}>Khám trực tiếp tại quầy</option>
+                        <option value="doctor" {% if form_data.booking_type == 'doctor' %}selected{% endif %}>Đặt theo bác sĩ</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1 md:col-span-2">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Địa điểm khám</label>
+                    <input type="text" name="location" value="{{ form_data.location }}" class="vital-input">
+                </div>
+            </div>
+        </div>
+
+        <div class="md:col-span-2 cluster-card">
+            <h4 class="font-label-sm text-label-sm uppercase tracking-wider cluster-title">Nội dung khám</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1 md:col-span-2">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Lý do khám <span class="text-error">*</span></label>
+                    <input type="text" name="reason" value="{{ form_data.reason }}" required placeholder="VD: Đau đầu, khó thở..." class="vital-input">
+                </div>
+                <div class="flex flex-col gap-1 md:col-span-2">
+                    <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Ghi chú</label>
+                    <textarea name="notes" rows="3" placeholder="Thông tin bổ sung..." class="vital-input resize-none">{{ form_data.notes }}</textarea>
+                </div>
+                <div class="flex items-center gap-3 self-end pb-2">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="international" id="internationalFlag2" {% if form_data.international %}checked{% endif %} class="w-5 h-5 rounded border-outline-variant/50 accent-primary">
+                        <span class="font-body-md text-body-md text-on-surface">Bệnh nhân quốc tế</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="md:col-span-2 flex justify-end gap-3 pt-2 border-t border-surface-variant mt-2">
+            <a href="{% url 'add_patient' %}" class="px-5 py-2 bg-surface-container border border-outline-variant/40 rounded-lg font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors">Tạo bệnh nhân khác</a>
+            <button type="submit" class="px-6 py-2 bg-gradient-to-b from-primary to-surface-tint text-on-primary rounded-lg font-data-mono text-data-mono shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">event</span> Đặt lịch khám (Bước 2)
+            </button>
+        </div>
+    </form>
+</div>
+{% else %}
+<div class="bg-primary/5 border border-primary/20 rounded-xl p-md mb-gutter flex items-center gap-3">
+    <span class="material-symbols-outlined text-primary text-[24px]">info</span>
+    <p class="font-body-md text-body-md text-on-surface">Hoàn tất bước 1 để mở form đặt lịch khám.</p>
+</div>
+{% endif %}
+
+<!-- Doctor info -->
+<div class="step-shell rounded-2xl p-md">
+    <div class="flex items-center gap-2 mb-3">
+        <span class="material-symbols-outlined text-primary text-[20px]">medical_services</span>
+        <h3 class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Bác sĩ tiếp nhận</h3>
+    </div>
+    <div class="grid grid-cols-3 gap-4 font-body-md text-body-md text-on-surface-variant">
+        <div><span class="font-semibold text-on-surface">Mã BS:</span> {{ doctor.id|default:request.session.doctor_id }}</div>
+        <div><span class="font-semibold text-on-surface">Bác sĩ:</span> {{ doctor.name|default:request.session.doctor_name }}</div>
+        <div><span class="font-semibold text-on-surface">Khoa:</span> {{ specialty.name|default:request.session.specialty_name|default:'Chưa cập nhật' }}</div>
+    </div>
+</div>
+{% endblock %}

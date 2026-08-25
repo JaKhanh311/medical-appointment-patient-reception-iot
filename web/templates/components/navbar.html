@@ -1,0 +1,157 @@
+{% load static %}
+
+<style>
+    .navbar-doctor {
+        background: #0d6efd;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        padding: 10px 0;
+    }
+
+    .navbar-brand {
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .navbar-brand img {
+        width: 42px;
+        height: 42px;
+        object-fit: cover;
+    }
+
+    .navbar-nav .nav-link {
+        font-weight: 600;
+        padding: 8px 16px !important;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .navbar-nav .nav-link:hover {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .navbar-nav .nav-link.active {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    .doctor-info {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-logout {
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .navbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+</style>
+
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-doctor">
+
+    <div class="container-fluid px-4">
+
+        <!-- Logo -->
+        <a class="navbar-brand d-flex align-items-center gap-2" href="/appointments/dashboard/">
+
+            <img src="{% static 'images/logo_icon.svg' %}" class="rounded" style="width:42px;height:42px;object-fit:contain;">
+
+            <span>OPDFlow</span>
+
+        </a>
+
+        <!-- Mobile toggle -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            <!-- Menu -->
+            <ul class="navbar-nav mx-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/appointments/dashboard/' %}active{% endif %}"
+                        href="/appointments/dashboard/">
+
+                        <i class="fa-solid fa-house"></i>
+                        Bảng điều khiển
+
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link {% if 'statistics' in request.path %}active{% endif %}"
+                        href="/appointments/statistics/">
+
+                        <i class="fa-solid fa-chart-line"></i>
+                        Thống kê
+
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link {% if 'history' in request.path %}active{% endif %}"
+                        href="/appointments/history/">
+
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        Lịch sử khám
+
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link {% if 'patients/add' in request.path %}active{% endif %}" href="/patients/add/">
+
+                        <i class="fa-solid fa-user-plus"></i>
+                        Thêm bệnh nhân
+
+                    </a>
+                </li>
+
+            </ul>
+
+            <!-- Right side -->
+            <div class="navbar-right">
+
+                <span class="doctor-info text-white">
+
+                    👨‍⚕️ {{ request.session.doctor_name|default:"Bác sĩ" }}
+
+                    {% if request.session.specialty_name %}
+                    <small class="opacity-75">
+                        ({{ request.session.specialty_name }})
+                    </small>
+                    {% endif %}
+
+                </span>
+
+                <a class="btn btn-outline-light btn-sm btn-logout" href="{% url 'logout' %}">
+
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    Đăng xuất
+
+                </a>
+
+            </div>
+
+        </div>
+    </div>
+</nav>

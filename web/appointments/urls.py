@@ -1,0 +1,43 @@
+from django.urls import path
+from .views import (
+    create_appointment_view,
+    dashboard_view,
+    dashboard_poll_view,
+    dashboard_debug_view,
+    appointment_detail_api_view,
+    examine_view,
+    examine_medical_records_ajax_view,
+    history_view,
+    mark_no_show_view,
+    patient_record_view,
+    patient_record_search_view,
+    patient_display_view,
+    patient_display_poll_view,
+    referral_view,
+    statistics_view,
+    dashboard_tts_prefetch_view,
+    update_priority_view,
+    priority_categories_view,
+)
+
+
+urlpatterns = [
+    path('dashboard/', dashboard_view, name='dashboard'),
+    path('dashboard/poll/', dashboard_poll_view, name='dashboard_poll'),
+    path('dashboard/debug/', dashboard_debug_view, name='dashboard_debug'),
+    path('dashboard/tts-prefetch/', dashboard_tts_prefetch_view, name='dashboard_tts_prefetch'),
+    path('dashboard/patient-display/', patient_display_view, name='patient_display'),
+    path('dashboard/patient-display/poll/', patient_display_poll_view, name='patient_display_poll'),
+    path('patient-records/', patient_record_search_view, name='patient_records'),
+    path('patient-record/<str:appointment_id>/', patient_record_view, name='patient_record'),
+    path('create/', create_appointment_view, name='create_appointment'),
+    path('examine/<str:appointment_id>/', examine_view, name='examine'),
+    path('examine/<str:appointment_id>/medical-records/', examine_medical_records_ajax_view, name='examine_medical_records_ajax'),
+    path('history/', history_view, name='history'),
+    path('statistics/', statistics_view, name='statistics'),
+    path('update-priority/', update_priority_view, name='update_priority'),
+    path('mark-no-show/', mark_no_show_view, name='mark_no_show'),
+    path('priority-categories/', priority_categories_view, name='priority_categories'),
+    path('api/detail/<str:appointment_id>/', appointment_detail_api_view, name='appointment_detail_api'),
+    path('referral/<str:appointment_id>/', referral_view, name='referral'),
+]

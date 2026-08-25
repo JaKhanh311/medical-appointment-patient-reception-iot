@@ -1,0 +1,94 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPDFlow – Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#00685f',
+                        'primary-container': '#008378',
+                        'on-primary': '#ffffff',
+                        'surface-container-lowest': '#ffffff',
+                        'surface-container-low': '#eff4f2',
+                        'outline-variant': '#bec9c7',
+                        'outline': '#6f7977',
+                        'on-surface': '#171d1c',
+                        'error': '#ba1a1a',
+                        'error-container': '#ffdad6',
+                    },
+                    fontFamily: {
+                        heading: ['Manrope', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="flex flex-col items-center gap-3">
+                <img src="{% static 'images/logo_icon.svg' %}" alt="OPDFlow" class="h-16 w-16 object-contain drop-shadow-lg">
+                <span class="font-heading text-xl font-black text-white tracking-wide">OPDFlow Admin</span>
+            </div>
+        </div>
+
+        <!-- Card -->
+        <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.4)] overflow-hidden">
+            <div class="bg-gradient-to-r from-slate-800 to-slate-700 px-8 py-6 border-b border-white/10">
+                <h2 class="font-heading text-xl font-bold text-white mb-0.5">Quản trị hệ thống</h2>
+                <p class="text-white/50 text-sm">Quản lý tài khoản bác sĩ và dữ liệu khám</p>
+            </div>
+
+            <div class="p-8">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="mb-4 p-3 rounded-lg text-sm
+                    {% if message.tags == 'error' %}bg-red-500/10 border border-red-500/20 text-red-400{% else %}bg-primary/10 border border-primary/20 text-primary{% endif %}
+                    flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px]">{% if message.tags == 'error' %}error{% else %}info{% endif %}</span>
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <form method="post" class="space-y-5">
+                    {% csrf_token %}
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-sm font-medium text-white/70" for="email">Email quản trị (Firebase Auth)</label>
+                        <input type="email" id="email" name="email" required placeholder="admin@example.com"
+                               class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition-all">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-sm font-medium text-white/70" for="password">Mật khẩu</label>
+                        <input type="password" id="password" name="password" required placeholder="Nhập mật khẩu"
+                               class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition-all">
+                    </div>
+                    <button type="submit"
+                            class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-3 px-6 rounded-xl font-heading font-semibold text-base shadow-md hover:shadow-lg transition-all active:scale-[0.98]">
+                        Đăng nhập
+                    </button>
+                </form>
+
+                <p class="text-center text-white/20 text-xs mt-6">Chỉ tài khoản có role = admin trong Firebase RTDB mới truy cập được.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

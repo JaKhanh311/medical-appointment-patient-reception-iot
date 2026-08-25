@@ -1,0 +1,1548 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard - OPDFlow{% endblock %}
+
+{% block extra_style %}
+.dashboard-page {
+    background: #dce5e3;
+    border: 1px solid rgba(140, 163, 161, 0.5);
+    border-radius: 1.5rem;
+    padding: 1rem;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    overflow-x: clip;
+}
+
+.dashboard-shell {
+    position: relative;
+    padding-bottom: 2rem;
+    width: 100%;
+    max-width: 100%;
+}
+
+.dashboard-shell::before {
+    display: none;
+}
+
+.dashboard-shell > * {
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-glass {
+    background: linear-gradient(180deg, rgba(243,246,245,0.98), rgba(232,239,238,0.94));
+    border: 1px solid rgba(138, 159, 157, 0.52);
+    box-shadow: 0 22px 48px rgba(15, 23, 42, 0.12), 0 8px 18px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(18px);
+}
+
+.dashboard-float {
+    transition: transform 0.24s ease, box-shadow 0.24s ease, background-color 0.24s ease;
+}
+
+.dashboard-float:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 28px 56px rgba(15, 23, 42, 0.16), 0 12px 24px rgba(15, 23, 42, 0.1);
+}
+
+.dashboard-hero {
+    overflow: hidden;
+}
+
+.dashboard-hero::after {
+    display: none;
+}
+
+.soft-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 9999px;
+    background: rgba(233, 241, 240, 0.92);
+    border: 1px solid rgba(138, 159, 157, 0.36);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.icon-pill {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, rgba(0,103,103,0.14), rgba(0,130,130,0.08));
+    color: #006767;
+}
+
+.dashboard-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #57657a;
+}
+
+.metric-card {
+    min-height: 12.75rem;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--metric-border, rgba(126, 148, 146, 0.4));
+    background: var(--metric-bg, #ffffff);
+    box-shadow:
+        0 4px 6px rgba(15, 23, 42, 0.06),
+        0 10px 24px rgba(15, 23, 42, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.9rem;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 8px 12px rgba(15, 23, 42, 0.08),
+        0 20px 40px rgba(15, 23, 42, 0.12);
+}
+
+.metric-card:focus-within {
+    outline: 2px solid var(--metric-accent, #00685f);
+    outline-offset: 2px;
+}
+
+.metric-icon {
+    width: 3.2rem;
+    height: 3.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 6px 14px rgba(15, 23, 42, 0.10);
+}
+
+.metric-icon .material-symbols-outlined {
+    font-size: 22px;
+}
+
+.metric-icon.metric-primary {
+    background: rgba(0, 103, 103, 0.18);
+    color: #00685f;
+}
+
+.metric-icon.metric-warn {
+    background: rgba(254, 166, 25, 0.25);
+    color: #8f4922;
+}
+
+.metric-icon.metric-ok {
+    background: rgba(22, 101, 52, 0.14);
+    color: #166534;
+}
+
+.metric-icon.metric-muted {
+    background: rgba(186, 26, 26, 0.12);
+    color: #ba1a1a;
+}
+
+.metric-tone-primary {
+    --metric-bg: #e8f5f3;
+    --metric-border: rgba(0, 103, 103, 0.22);
+    --metric-accent: #00685f;
+}
+
+.metric-tone-warn {
+    --metric-bg: #fff4e6;
+    --metric-border: rgba(143, 73, 34, 0.22);
+    --metric-accent: #8f4922;
+}
+
+.metric-tone-ok {
+    --metric-bg: #e8f5ee;
+    --metric-border: rgba(22, 101, 52, 0.2);
+    --metric-accent: #166534;
+}
+
+.metric-tone-muted {
+    --metric-bg: #fef2f2;
+    --metric-border: rgba(186, 26, 26, 0.2);
+    --metric-accent: #ba1a1a;
+}
+
+.filter-input {
+    background: #edf3f2;
+    border: 1px solid rgba(136, 158, 156, 0.44);
+    border-radius: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.filter-input:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: rgba(0,103,103,0.25);
+    box-shadow: 0 0 0 4px rgba(0,103,103,0.10);
+}
+
+.session-filter-btn.is-active {
+    background: linear-gradient(135deg, #00685f 0%, #006a61 100%);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(0,104,95,0.25);
+}
+.session-filter-btn {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.session-filter-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.05);
+}
+.appointment-row.is-hidden { display: none; }
+.appointment-row {
+    border: 1px solid rgba(132, 154, 152, 0.5);
+    background: linear-gradient(175deg, rgba(246,250,249,1), rgba(233,241,240,0.95));
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1), 0 4px 12px rgba(15, 23, 42, 0.06);
+    transition: transform 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease;
+}
+.appointment-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 24px 46px rgba(15, 23, 42, 0.16), 0 8px 18px rgba(15, 23, 42, 0.09);
+    background: rgba(228, 238, 236, 0.96);
+}
+.row-action-btn {
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+.row-action-btn:hover {
+    transform: translateY(-1px);
+}
+@keyframes live-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.live-dot { animation: live-pulse 1.8s ease-in-out infinite; }
+@keyframes slide-in { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.toast-enter { animation: slide-in .3s ease; }
+@keyframes row-flash {
+    0%   { box-shadow: 0 0 0 0 rgba(20,184,166,0.0); background-color: inherit; }
+    20%  { box-shadow: 0 0 0 4px rgba(20,184,166,0.45); background-color: rgba(20,184,166,0.08); }
+    60%  { box-shadow: 0 0 0 4px rgba(20,184,166,0.45); background-color: rgba(20,184,166,0.08); }
+    100% { box-shadow: 0 0 0 0 rgba(20,184,166,0.0); background-color: inherit; }
+}
+.row-flash { animation: row-flash 1s ease-out; }
+
+.dashboard-modal-shell {
+    background: linear-gradient(175deg, rgba(243,246,245,0.98), rgba(232,239,238,0.94));
+    border: 1px solid rgba(132, 154, 152, 0.52);
+    box-shadow: 0 28px 58px rgba(15, 23, 42, 0.16), 0 10px 22px rgba(15, 23, 42, 0.1);
+}
+{% endblock %}
+
+{% block content %}
+<div id="dashboardData"
+     data-selected-date="{{ selected_date_iso }}"
+     data-is-today="{{ is_today|yesno:'true,false' }}"
+     data-poll-url="{% url 'dashboard_poll' %}"
+    data-tts-prefetch-url="{% url 'dashboard_tts_prefetch' %}"
+     data-examine-base="/appointments/examine/"
+     data-update-priority-url="{% url 'update_priority' %}"
+     data-detail-url-base="/appointments/api/detail/"
+     data-initial-snapshot-key="{{ initial_snapshot_key }}"
+     style="display:none;"></div>
+
+<div class="dashboard-page">
+<div class="dashboard-shell space-y-gutter">
+    <section class="dashboard-glass dashboard-hero rounded-[2rem] px-6 py-6 lg:px-8 lg:py-7 mb-gutter">
+        <div class="space-y-4">
+            <div>
+                <div class="dashboard-kicker mb-3">
+                    <span class="icon-pill"><span class="material-symbols-outlined text-[18px]">clinical_notes</span></span>
+                    Điều phối lịch hẹn theo thời gian thực
+                </div>
+                <h2 class="font-h1 text-[34px] lg:text-[42px] leading-tight text-on-background mb-2">Lịch Hẹn Hôm Nay</h2>
+                <div class="flex flex-wrap items-center gap-3 text-outline">
+                    <span class="soft-chip">
+                        <span class="material-symbols-outlined text-[18px] text-primary">calendar_today</span>
+                        {{ selected_date|date:"l, d/m/Y" }}
+                    </span>
+                    <span class="soft-chip">
+                        <span class="material-symbols-outlined text-[18px] text-primary">badge</span>
+                        BS. {{ request.session.doctor_name|default:"Bác sĩ" }}
+                    </span>
+                    {% if request.session.specialty_name %}
+                    <span class="soft-chip">
+                        <span class="material-symbols-outlined text-[18px] text-primary">neurology</span>
+                        Khoa {{ request.session.specialty_name }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-end gap-3">
+                <div id="liveIndicator" class="inline-flex items-center gap-2 px-4 py-3 rounded-full bg-secondary-container/70 text-on-secondary-container font-data-mono text-[12px] shadow-[0_10px_24px_rgba(0,0,0,0.04)]">
+                    <span class="live-dot w-2 h-2 rounded-full bg-primary inline-block"></span>
+                    <span id="liveStatus">Đang kết nối...</span>
+                </div>
+                <a href="{% url 'add_patient' %}" class="row-action-btn inline-flex items-center gap-2 bg-gradient-to-br from-primary to-surface-tint text-on-primary px-6 py-3 rounded-full font-data-mono text-data-mono shadow-[0_14px_30px_rgba(0,104,95,0.22)] hover:shadow-[0_18px_38px_rgba(0,104,95,0.32)] active:scale-95">
+                    <span class="material-symbols-outlined text-[18px]">person_add</span>
+                    Thêm Bệnh Nhân
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-gutter mb-xl">
+        <div class="lg:col-span-4 dashboard-glass dashboard-float rounded-[2rem] p-6 lg:p-7">
+            <div class="flex items-center justify-between gap-3 mb-5">
+                <div>
+                    <div class="dashboard-kicker mb-1"><span class="material-symbols-outlined text-[16px]">manage_search</span> Bộ lọc</div>
+                    <h3 class="font-h3 text-h3 text-on-surface">Bộ lọc & Tìm kiếm</h3>
+                </div>
+                <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-1 text-outline hover:text-primary transition-colors text-sm">
+                    <span class="material-symbols-outlined text-[16px]">clear_all</span>
+                    Xóa
+                </a>
+            </div>
+            <form method="get" class="space-y-4">
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+                    <input id="dashboardSearch" type="text" name="search" value="{{ search_query }}" placeholder="Tìm tên bệnh nhân, SDT..."
+                           class="filter-input w-full py-3 pl-11 pr-4 text-body-md font-body-md text-on-surface placeholder:text-outline">
+                </div>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-[18px]">event</span>
+                    <input id="dashboardDate" type="date" name="date" value="{{ selected_date_iso }}"
+                           class="filter-input w-full py-3 pl-11 pr-4 text-body-md font-body-md text-on-surface">
+                </div>
+                <div class="flex flex-col gap-3 pt-2">
+                    <button type="submit" class="row-action-btn inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-secondary-container/70 text-on-secondary-container font-semibold hover:bg-secondary-container transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">filter_alt</span>
+                        Áp dụng
+                    </button>
+                    <a href="{% url 'patient_display' %}?date={{ selected_date_iso }}" id="openPatientDisplay" target="_blank" rel="noopener"
+                       class="row-action-btn inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#fdf0e9] text-[#8f4922] font-semibold hover:bg-[#f8e2d5] transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">meeting_room</span>
+                        Xem Phòng chờ
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="lg:col-span-8 grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 items-stretch">
+            <div class="metric-card metric-tone-primary rounded-[2rem] p-5 lg:p-6" tabindex="0">
+                <div class="metric-icon metric-primary"><span class="material-symbols-outlined icon-filled">calendar_month</span></div>
+                <div class="font-h1 text-[42px] leading-none text-on-surface font-black" id="statTotal">{{ dashboard_stats.total }}</div>
+                <div class="text-body-md font-semibold text-outline">Tổng lịch hẹn</div>
+            </div>
+            <div class="metric-card metric-tone-warn rounded-[2rem] p-5 lg:p-6" tabindex="0">
+                <div class="metric-icon metric-warn"><span class="material-symbols-outlined icon-filled">hourglass_empty</span></div>
+                <div class="font-h1 text-[42px] leading-none text-on-surface font-black" id="statWaiting">{{ dashboard_stats.waiting }}</div>
+                <div class="text-body-md font-semibold text-outline">Đang chờ</div>
+            </div>
+            <div class="metric-card metric-tone-ok rounded-[2rem] p-5 lg:p-6" tabindex="0">
+                <div class="metric-icon metric-ok"><span class="material-symbols-outlined icon-filled">check_circle</span></div>
+                <div class="font-h1 text-[42px] leading-none text-on-surface font-black" id="statCompleted">{{ dashboard_stats.completed }}</div>
+                <div class="text-body-md font-semibold text-outline">Đã khám</div>
+            </div>
+            <div class="metric-card metric-tone-muted rounded-[2rem] p-5 lg:p-6" tabindex="0">
+                <div class="metric-icon metric-muted"><span class="material-symbols-outlined icon-filled">event_busy</span></div>
+                <div class="font-h1 text-[42px] leading-none text-on-surface font-black" id="statScheduled">{{ dashboard_stats.scheduled }}</div>
+                <div class="text-body-md font-semibold text-outline">Chưa đến</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-glass rounded-[2rem] p-6 lg:p-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+            <div>
+                <div class="dashboard-kicker mb-1"><span class="material-symbols-outlined text-[16px]">view_agenda</span> Điều phối khám</div>
+                <h2 class="font-h3 text-[28px] leading-tight text-on-surface">Danh sách khám</h2>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="flex bg-surface-container-low p-1 rounded-full w-full md:w-auto shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                    <button type="button" class="session-filter-btn flex-1 md:flex-none px-5 py-2 rounded-full border border-transparent font-data-mono text-data-mono text-on-surface" data-session-filter="all">
+                        Tất cả <span class="ml-1 tab-total">{{ dashboard_stats.total }}</span>
+                    </button>
+                    <button type="button" class="session-filter-btn flex-1 md:flex-none px-5 py-2 rounded-full border border-transparent font-data-mono text-data-mono text-on-surface" data-session-filter="morning">
+                        Sáng <span class="ml-1 tab-morning">({{ dashboard_stats.morning }})</span>
+                    </button>
+                    <button type="button" class="session-filter-btn flex-1 md:flex-none px-5 py-2 rounded-full border border-transparent font-data-mono text-data-mono text-on-surface" data-session-filter="afternoon">
+                        Chiều <span class="ml-1 tab-afternoon">({{ dashboard_stats.afternoon }})</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-sm" id="appointmentList">
+    {% for p in all_today_appointments %}
+    <article class="appointment-row relative rounded-[1.75rem] p-5 flex flex-col md:flex-row items-start md:items-center gap-5 lg:gap-6"
+             data-session="{{ p.session_key }}"
+             data-appointment-id="{{ p.appointment_id }}"
+             id="apt-{{ p.appointment_id|slugify }}">
+        <div class="absolute left-0 top-0 bottom-0 w-[6px] rounded-l-xl
+            {% if p.status_key == 'waiting' %}bg-[#2e7d32]
+            {% elif p.status_key == 'scheduled' %}bg-[#f9a825]
+            {% elif p.status_key == 'completed' %}bg-primary-container
+            {% elif p.status_key == 'cancelled' or p.status_key == 'no_show' %}bg-error
+            {% else %}bg-outline-variant{% endif %}"></div>
+        <div class="pl-4 min-w-[92px] shrink-0">
+            <div class="font-h3 text-h3 text-on-surface font-bold">{{ p.time_display }}</div>
+            {% if p.time %}<span class="font-label-sm text-[10px] text-outline uppercase">{{ p.session_label }}</span>{% endif %}
+        </div>
+        <div class="flex items-center gap-4 flex-1 min-w-0">
+            <div class="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-h3 text-h3 shrink-0">
+                {{ p.name|slice:":1"|upper }}
+            </div>
+            <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2 mb-1">
+                <h3 class="font-h3 text-h3 text-on-surface">{{ p.name }}</h3>
+                <span class="px-3 py-1 rounded-full text-xs font-semibold font-label-sm
+                    {% if p.status_key == 'waiting' %}bg-[#ecf7ef] border border-[#b7e1bf] text-[#1f6b35]
+                    {% elif p.status_key == 'scheduled' %}bg-[#fff8e6] border border-[#f6d88a] text-[#8a5a00]
+                    {% elif p.status_key == 'completed' %}bg-primary-fixed/30 border border-primary/20 text-primary
+                    {% elif p.status_key == 'cancelled' or p.status_key == 'no_show' %}bg-error-container border border-error/20 text-on-error-container
+                    {% else %}bg-surface-container border border-outline-variant/40 text-outline{% endif %}">
+                    {{ p.status|upper }}
+                </span>
+                {% if p.isPriority %}
+                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-[#fff8ec] border border-[#fde6c4] text-[#8a6018] flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px] icon-filled">star</span>
+                    {{ p.priorityReason|default:"Ưu tiên" }}
+                </span>
+                {% endif %}
+            </div>
+            <p class="font-body-md text-body-md text-outline flex flex-wrap gap-3">
+                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span>{{ p.time_display }}</span>
+            </p>
+            </div>
+        </div>
+        <div class="hidden lg:flex w-32 justify-end shrink-0">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold
+                {% if p.status_key == 'waiting' %}bg-[#e6f4ea] text-[#1e6a34]
+                {% elif p.status_key == 'scheduled' %}bg-[#fff6e1] text-[#8a5a00]
+                {% elif p.status_key == 'completed' %}bg-primary-fixed/40 text-primary
+                {% elif p.status_key == 'cancelled' or p.status_key == 'no_show' %}bg-error-container text-on-error-container
+                {% else %}bg-surface-container text-outline{% endif %}">
+                <span class="w-1.5 h-1.5 rounded-full {% if p.status_key == 'waiting' %}bg-[#1e6a34]{% elif p.status_key == 'scheduled' %}bg-[#8a5a00]{% elif p.status_key == 'completed' %}bg-primary{% elif p.status_key == 'cancelled' or p.status_key == 'no_show' %}bg-error{% else %}bg-outline{% endif %}"></span>
+                {{ p.status }}
+            </span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end mt-2 md:mt-0">
+            <button type="button"
+                    class="row-action-btn w-10 h-10 rounded-full bg-surface-container-high text-outline flex items-center justify-center hover:bg-surface-container-highest hover:text-primary"
+                    onclick="openPatientModal('{{ p.appointment_id }}')"
+                    title="Xem chi tiết">
+                <span class="material-symbols-outlined text-[18px]">visibility</span>
+            </button>
+            {% if p.status_key == 'waiting' %}
+            <button type="button"
+                    class="js-announce-btn row-action-btn px-4 py-2.5 rounded-full bg-[#e6f4ea] text-[#1e6a34] font-semibold text-sm hover:bg-[#d7efde] transition-colors shadow-sm flex items-center gap-2"
+                    data-appointment-id="{{ p.appointment_id }}"
+                    data-patient-name="{{ p.name|escapejs }}"
+                    data-tts-prefetch-url="{% url 'dashboard_tts_prefetch' %}"
+                    title="Bấm: Mời bệnh nhân. Đè lâu hoặc chuột phải: Xin nhắc lại.">
+                <span class="material-symbols-outlined text-[16px]">campaign</span>
+                Phát âm
+            </button>
+            <button type="button"
+                    class="js-examine-call row-action-btn px-5 py-2.5 rounded-full bg-primary text-on-primary font-semibold text-sm hover:bg-primary-container transition-colors shadow-sm shadow-primary/20 flex items-center gap-2"
+                    data-appointment-id="{{ p.appointment_id }}"
+                    data-patient-name="{{ p.name|escapejs }}"
+                    data-examine-url="{% url 'examine' p.appointment_id %}"
+                    data-tts-prefetch-url="{% url 'dashboard_tts_prefetch' %}">
+                <span class="material-symbols-outlined text-[16px]">stethoscope</span>
+                Khám ngay
+            </button>
+            {% endif %}
+            {% if p.status_key == 'waiting' or p.status_key == 'arrived' %}
+            <button type="button"
+                    class="priority-btn row-action-btn px-3 py-2 rounded-full border font-data-mono text-data-mono flex items-center gap-1
+                    {% if p.isPriority %}border-[#fde6c4] bg-[#fff8ec] text-[#8a6018] hover:bg-[#fef3de]{% else %}border-outline-variant/60 text-outline hover:text-primary hover:border-primary/50 bg-[#edf3f2]{% endif %}"
+                    data-appointment-id="{{ p.appointment_id }}"
+                    data-patient-id="{{ p.patient_id }}"
+                    data-session-key="{{ p.session_key }}"
+                    data-is-priority="{{ p.isPriority|yesno:'true,false' }}">
+                <span class="material-symbols-outlined text-[16px] {% if p.isPriority %}icon-filled{% endif %}">star</span>
+                {% if p.isPriority %}Bỏ ưu tiên{% else %}Ưu tiên{% endif %}
+            </button>
+            {% endif %}
+            <a href="{% url 'referral' p.appointment_id %}"
+               class="row-action-btn px-3 py-2 rounded-full border border-outline-variant/60 text-outline hover:text-tertiary hover:border-tertiary/50 bg-[#edf3f2] font-data-mono text-data-mono flex items-center gap-1"
+               title="Chuyển hồ sơ">
+                <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+                Chuyển
+            </a>
+        </div>
+    </article>
+    {% empty %}
+    <div class="server-empty flex flex-col gap-3" id="aptLoadingSkeleton">
+        <!-- Centered loading indicator -->
+        <div class="flex flex-col items-center justify-center py-10 gap-4">
+            <div class="relative w-14 h-14">
+                <div class="absolute inset-0 rounded-full border-4 border-outline-variant/20"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+                <div class="absolute inset-[10px] flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+                </div>
+            </div>
+            <div class="text-center">
+                <p class="font-data-mono text-[14px] text-on-surface font-semibold">Đang tải danh sách lịch khám</p>
+                <p class="font-body-md text-[12px] text-outline mt-1">Vui lòng chờ trong giây lát...</p>
+            </div>
+        </div>
+        <!-- Skeleton rows -->
+        <div class="animate-pulse relative rounded-[1.75rem] p-5 flex flex-col md:flex-row items-center gap-5 bg-surface-container-low overflow-hidden opacity-60">
+            <div class="pl-4 min-w-[92px] shrink-0 space-y-2">
+                <div class="h-7 w-20 bg-outline-variant/30 rounded-lg"></div>
+                <div class="h-3 w-10 bg-outline-variant/20 rounded"></div>
+            </div>
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+                <div class="w-12 h-12 rounded-full bg-outline-variant/30 shrink-0"></div>
+                <div class="flex-1 space-y-2">
+                    <div class="h-5 w-44 bg-outline-variant/30 rounded-lg"></div>
+                    <div class="h-3 w-28 bg-outline-variant/20 rounded"></div>
+                </div>
+            </div>
+            <div class="hidden lg:flex w-32 justify-end"><div class="h-7 w-24 bg-outline-variant/20 rounded-full"></div></div>
+            <div class="flex gap-2"><div class="w-10 h-10 rounded-full bg-outline-variant/20"></div><div class="h-10 w-24 rounded-full bg-outline-variant/20"></div><div class="h-10 w-28 rounded-full bg-outline-variant/30"></div></div>
+        </div>
+        <div class="animate-pulse relative rounded-[1.75rem] p-5 flex flex-col md:flex-row items-center gap-5 bg-surface-container-low overflow-hidden opacity-40">
+            <div class="pl-4 min-w-[92px] shrink-0 space-y-2">
+                <div class="h-7 w-16 bg-outline-variant/30 rounded-lg"></div>
+                <div class="h-3 w-12 bg-outline-variant/20 rounded"></div>
+            </div>
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+                <div class="w-12 h-12 rounded-full bg-outline-variant/30 shrink-0"></div>
+                <div class="flex-1 space-y-2">
+                    <div class="h-5 w-36 bg-outline-variant/30 rounded-lg"></div>
+                    <div class="h-3 w-20 bg-outline-variant/20 rounded"></div>
+                </div>
+            </div>
+            <div class="hidden lg:flex w-32 justify-end"><div class="h-7 w-24 bg-outline-variant/20 rounded-full"></div></div>
+            <div class="flex gap-2"><div class="w-10 h-10 rounded-full bg-outline-variant/20"></div><div class="h-10 w-24 rounded-full bg-outline-variant/20"></div><div class="h-10 w-28 rounded-full bg-outline-variant/30"></div></div>
+        </div>
+        <div class="animate-pulse relative rounded-[1.75rem] p-5 flex flex-col md:flex-row items-center gap-5 bg-surface-container-low overflow-hidden opacity-25">
+            <div class="pl-4 min-w-[92px] shrink-0 space-y-2">
+                <div class="h-7 w-20 bg-outline-variant/30 rounded-lg"></div>
+                <div class="h-3 w-8 bg-outline-variant/20 rounded"></div>
+            </div>
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+                <div class="w-12 h-12 rounded-full bg-outline-variant/30 shrink-0"></div>
+                <div class="flex-1 space-y-2">
+                    <div class="h-5 w-48 bg-outline-variant/30 rounded-lg"></div>
+                    <div class="h-3 w-24 bg-outline-variant/20 rounded"></div>
+                </div>
+            </div>
+            <div class="hidden lg:flex w-32 justify-end"><div class="h-7 w-24 bg-outline-variant/20 rounded-full"></div></div>
+            <div class="flex gap-2"><div class="w-10 h-10 rounded-full bg-outline-variant/20"></div><div class="h-10 w-24 rounded-full bg-outline-variant/20"></div><div class="h-10 w-28 rounded-full bg-outline-variant/30"></div></div>
+        </div>
+    </div>
+    {% endfor %}
+        </div>
+
+        <div class="hidden bg-surface-container-low rounded-[1.75rem] p-8 text-center mt-sm" id="clientEmptyState">
+            <span class="material-symbols-outlined text-[48px] text-outline/30 block mb-3">search_off</span>
+            <h3 class="font-h3 text-h3 text-on-surface-variant mb-1">Không có bệnh nhân phù hợp</h3>
+            <p class="font-body-md text-body-md text-outline">Bộ lọc buổi hiện tại chưa khớp với lịch hẹn nào.</p>
+        </div>
+    </section>
+</div>
+</div>
+
+<!-- PATIENT DETAIL MODALS -->
+<div id="patientModalsContainer">
+<!-- Shared patient detail modal (single instance, populated lazily via API on click) -->
+<div id="patientDetailModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closePatientModal()"></div>
+    <div class="dashboard-modal-shell relative backdrop-blur-2xl rounded-2xl w-full max-w-md p-lg">
+        <div class="flex items-center justify-between mb-lg pb-4 border-b border-outline-variant/20">
+            <h3 class="font-h3 text-h3 text-on-surface">Thông tin bệnh nhân</h3>
+            <button onclick="closePatientModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+        <!-- Static fields (from card data, always available immediately) -->
+        <div id="patientDetailStatic" class="space-y-4 mb-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Họ tên</div><div id="detailName" class="font-data-mono text-data-mono text-on-surface">—</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Trạng thái</div><span id="detailStatus" class="px-2 py-1 rounded-md text-xs font-label-sm bg-surface-container text-outline">—</span></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Buổi / Giờ</div><div id="detailTime" class="font-body-md text-body-md text-on-surface">—</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Ngày khám</div><div id="detailDate" class="font-body-md text-body-md text-on-surface">—</div></div>
+            </div>
+        </div>
+        <!-- Lazy-loaded detail fields -->
+        <div id="patientDetailLazy" class="space-y-4">
+            <div id="detailLoadingSpinner" class="flex items-center gap-2 text-outline text-sm">
+                <span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                Đang tải thông tin...
+            </div>
+            <div id="detailContent" class="hidden space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Giới tính / Tuổi</div><div id="detailGenderAge" class="font-body-md text-body-md text-on-surface">—</div></div>
+                    <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Ngày sinh</div><div id="detailBirthdate" class="font-body-md text-body-md text-on-surface">—</div></div>
+                    <div class="col-span-2"><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Điện thoại</div><div id="detailPhone" class="font-body-md text-body-md text-on-surface">—</div></div>
+                </div>
+                <div id="detailSummaryBlock" class="hidden">
+                    <div class="font-label-sm text-label-sm text-outline uppercase mb-1">Ghi chú</div>
+                    <div id="detailSummary" class="font-body-md text-body-md text-on-surface"></div>
+                </div>
+                <div id="detailPriorityBlock" class="hidden">
+                    <div class="font-label-sm text-label-sm text-outline uppercase mb-1">Lý do ưu tiên</div>
+                    <div id="detailPriorityReason" class="font-body-md text-body-md text-on-surface"></div>
+                </div>
+            </div>
+            <div id="detailErrorMsg" class="hidden text-sm text-error">Không thể tải thông tin chi tiết.</div>
+        </div>
+        <div class="mt-lg pt-4 border-t border-outline-variant/20 flex justify-end">
+            <button onclick="closePatientModal()" class="px-5 py-2 bg-surface-container border border-outline-variant/40 rounded-lg font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- PRIORITY MODAL -->
+<div id="priorityModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closePriorityModal()"></div>
+    <div class="dashboard-modal-shell relative backdrop-blur-2xl rounded-2xl w-full max-w-2xl p-lg max-h-[80vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-lg pb-4 border-b border-outline-variant/20">
+            <h3 class="font-h3 text-h3 text-on-surface">Đánh dấu ưu tiên</h3>
+            <button onclick="closePriorityModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+
+        <div id="priorityCategoriesLoading" class="text-center py-6">
+            <div class="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+
+        <form id="priorityForm" class="hidden space-y-6">
+            <!-- Priority Tiers Tabs -->
+            <div class="space-y-3">
+                <p class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Mức Ưu Tiên</p>
+                <div id="priorityTiersList" class="grid grid-cols-2 gap-3">
+                    <!-- Generated from API -->
+                </div>
+            </div>
+
+            <!-- Custom Reason -->
+            <div class="space-y-2 pt-4 border-t border-outline-variant/20">
+                <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Lý do / Chỉ định khác <span class="text-outline-variant">(tùy chọn)</span></label>
+                <textarea id="priorityReason" 
+                    class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-body-md font-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    placeholder="Mô tả thêm lý do ưu tiên (vd: có triệu chứng sốt cao, khó thở)..."
+                    rows="2"></textarea>
+            </div>
+
+            <!-- Beneficiaries Checkboxes -->
+            <div id="beneficiariesCheckboxContainer" class="hidden p-4 bg-surface-container rounded-lg">
+                <p class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-3">Đối tượng ưu tiên (chọn nhiều)</p>
+                <div id="beneficiariesCheckboxList" class="space-y-2">
+                    <!-- Generated checkboxes from selected tier -->
+                </div>
+            </div>
+        </form>
+
+        <div class="mt-lg pt-4 border-t border-outline-variant/20 flex justify-end gap-3">
+            <button type="button" onclick="closePriorityModal()" class="px-5 py-2 bg-surface-container border border-outline-variant/40 rounded-lg font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors">Hủy</button>
+            <button type="button" id="confirmPriorityBtn" class="px-5 py-2 bg-gradient-to-b from-primary to-surface-tint text-on-primary rounded-lg font-data-mono text-data-mono shadow-sm hover:shadow-md transition-all">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="liveToast" class="hidden fixed top-4 right-4 z-[200] flex items-center gap-3 bg-[#00685f] text-white px-5 py-3 rounded-xl shadow-[0_8px_30px_rgba(0,104,95,0.35)] font-data-mono text-[13px] max-w-xs toast-enter">
+    <span class="material-symbols-outlined text-[18px]">sync</span>
+    <span id="liveToastMsg">Dữ liệu đã được cập nhật</span>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ---- helpers ---- */
+let _detailUrlBase = '/appointments/api/detail/';
+let _detailCache = {};   // appointmentId -> fetched detail object
+let _selectedDateTxt = '';
+
+function openPatientModal(appointmentId) {
+    const modal = document.getElementById('patientDetailModal');
+    if (!modal) return;
+
+    // Reset lazy section
+    document.getElementById('detailLoadingSpinner').classList.remove('hidden');
+    document.getElementById('detailContent').classList.add('hidden');
+    document.getElementById('detailErrorMsg').classList.add('hidden');
+
+    // Populate static fields from card DOM
+    const row = document.querySelector(`[data-appointment-id="${CSS.escape(appointmentId)}"]`);
+    const name = row ? (row.querySelector('h3')?.textContent?.trim() || '—') : '—';
+    const timeTxt = row ? (row.querySelector('.font-h3')?.textContent?.trim() || '—') : '—';
+
+    document.getElementById('detailName').textContent = name;
+    document.getElementById('detailTime').textContent = timeTxt;
+    document.getElementById('detailDate').textContent = _selectedDateTxt;
+
+    // Status badge (read from row's stripe class)
+    const stripe = row ? row.querySelector('.absolute.left-0') : null;
+    const statusEl = document.getElementById('detailStatus');
+    if (statusEl) {
+        const badgeEl = row ? row.querySelector('[class*="rounded-full"][class*="text-xs"]') : null;
+        statusEl.textContent = badgeEl ? badgeEl.textContent.trim() : '—';
+    }
+
+    modal.classList.remove('hidden');
+
+    // Serve from cache if available
+    if (_detailCache[appointmentId]) {
+        _populateDetailContent(_detailCache[appointmentId]);
+        return;
+    }
+
+    // Fetch from server
+    const url = `${_detailUrlBase}${encodeURIComponent(appointmentId)}/?date=${encodeURIComponent(document.getElementById('dashboardData').dataset.selectedDate)}`;
+    fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(data => {
+            _detailCache[appointmentId] = data;
+            _populateDetailContent(data);
+        })
+        .catch(() => {
+            document.getElementById('detailLoadingSpinner').classList.add('hidden');
+            document.getElementById('detailErrorMsg').classList.remove('hidden');
+        });
+}
+
+function _populateDetailContent(d) {
+    document.getElementById('detailLoadingSpinner').classList.add('hidden');
+
+    const genderAge = [d.gender, d.age ? `${d.age} tuổi` : ''].filter(Boolean).join(' – ') || '—';
+    document.getElementById('detailGenderAge').textContent = genderAge;
+    document.getElementById('detailBirthdate').textContent = d.birthdate || '—';
+    document.getElementById('detailPhone').textContent = d.phone || '—';
+
+    const summaryBlock = document.getElementById('detailSummaryBlock');
+    if (d.summary_text) {
+        document.getElementById('detailSummary').textContent = d.summary_text;
+        summaryBlock.classList.remove('hidden');
+    } else {
+        summaryBlock.classList.add('hidden');
+    }
+
+    const prioBlock = document.getElementById('detailPriorityBlock');
+    if (d.priorityReason) {
+        document.getElementById('detailPriorityReason').textContent = d.priorityReason;
+        prioBlock.classList.remove('hidden');
+    } else {
+        prioBlock.classList.add('hidden');
+    }
+
+    document.getElementById('detailContent').classList.remove('hidden');
+}
+
+function closePatientModal() { document.getElementById('patientDetailModal')?.classList.add('hidden'); }
+function closePriorityModal() { document.getElementById('priorityModal').classList.add('hidden'); }
+
+function getCsrf(){
+    let v=null;
+    document.cookie.split(';').forEach(c=>{
+        const t=c.trim();
+        if(t.startsWith('csrftoken='))v=decodeURIComponent(t.slice(10));
+    });
+    return v;
+}
+
+/* ---- Server-side Text-to-Speech ---- */
+const _ttsAudioCache = new Map();
+const _ttsAudioPending = new Map();
+
+async function ensureTtsAudioPair(name, appointmentId, ttsPrefetchUrl, queuePosition) {
+    const text = 'Mời bệnh nhân ' + name + ' vào phòng khám';
+    const cacheKey = String(appointmentId || text);
+    if (_ttsAudioCache.has(cacheKey)) {
+        return _ttsAudioCache.get(cacheKey);
+    }
+
+    if (_ttsAudioPending.has(cacheKey)) {
+        return _ttsAudioPending.get(cacheKey);
+    }
+
+    const pendingPromise = (async function(){
+        const r = await fetch(ttsPrefetchUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRFToken': getCsrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ appointment_id: appointmentId, name: name, queue_position: queuePosition, text: text }),
+        });
+
+        let data = null;
+        try { data = await r.json(); } catch (_) { data = null; }
+
+        if (!r.ok) {
+            const detail = (data && (data.message || data.error)) ? ` - ${data.message || data.error}` : '';
+            throw new Error(`TTS prefetch failed: ${r.status}${detail}`);
+        }
+
+        if (!data || !data.success || !data.audio_url) {
+            throw new Error((data && data.message) || 'TTS prefetch response invalid');
+        }
+
+        const pair = {
+            callUrl: data.audio_url,
+            remindUrl: data.remind_audio_url || data.audio_url,
+        };
+        _ttsAudioCache.set(cacheKey, pair);
+        return pair;
+    })();
+
+    _ttsAudioPending.set(cacheKey, pendingPromise);
+    try {
+        return await pendingPromise;
+    } finally {
+        _ttsAudioPending.delete(cacheKey);
+    }
+}
+
+async function speakAndGo(name, url, appointmentId, ttsPrefetchUrl, queuePosition) {
+    try {
+        const audioPair = await ensureTtsAudioPair(name, appointmentId, ttsPrefetchUrl, queuePosition);
+        const audioUrl = audioPair.callUrl;
+        const audio = new Audio(audioUrl);
+        audio.preload = 'auto';
+
+        const goNext = function () {
+            window.location.href = url;
+        };
+
+        audio.addEventListener('ended', goNext, { once: true });
+        audio.addEventListener('error', goNext, { once: true });
+
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.then === 'function') {
+            playPromise.catch(function(err){
+                console.warn('[TTS] play rejected', err);
+                showToast('Trình duyệt đang chặn phát âm thanh. Vui lòng bật âm thanh tab.');
+                goNext();
+            });
+        }
+    } catch (e) {
+        console.warn('[TTS] fallback to direct navigation', e);
+        showToast('Không tạo được file TTS: ' + (e && e.message ? e.message : 'Lỗi không xác định'));
+        window.location.href = url;
+    }
+}
+
+async function playAnnounce(name, appointmentId, ttsPrefetchUrl, mode, queuePosition) {
+    try {
+        const audioPair = await ensureTtsAudioPair(name, appointmentId, ttsPrefetchUrl, queuePosition);
+        const audioUrl = mode === 'remind' ? (audioPair.remindUrl || audioPair.callUrl) : audioPair.callUrl;
+        const audio = new Audio(audioUrl);
+        audio.preload = 'auto';
+
+        const doneText = mode === 'remind'
+            ? 'Đã phát xong câu nhắc lại.'
+            : 'Đã phát xong câu mời bệnh nhân.';
+        const startText = mode === 'remind'
+            ? 'Đang phát: Xin nhắc lại...'
+            : 'Đang phát: Mời bệnh nhân...';
+
+        audio.addEventListener('ended', function(){
+            showToast(doneText);
+        }, { once: true });
+        audio.addEventListener('error', function(){
+            showToast('Không phát được file audio.');
+        }, { once: true });
+
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.then === 'function') {
+            playPromise.then(function(){
+                showToast(startText);
+            }).catch(function(){
+                showToast('Trình duyệt đang chặn phát âm thanh. Vui lòng bật âm thanh tab.');
+            });
+        }
+    } catch (e) {
+        console.warn('[TTS] announce failed', e);
+        showToast('TTS lỗi: ' + (e && e.message ? e.message : 'Lỗi không xác định'));
+    }
+}
+
+function slugify(str) {
+    return String(str||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+}
+function esc(str) {
+    return String(str||'')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function findAppointmentRow(appointmentId) {
+    return Array.from(document.querySelectorAll('#appointmentList .appointment-row'))
+        .find((row) => row.dataset.appointmentId === String(appointmentId || '')) || null;
+}
+
+function dedupeAppointments(appointments) {
+    const seen = new Set();
+    return (appointments || []).filter((appointment) => {
+        const key = String(appointment.appointment_id || '');
+        if (!key || seen.has(key)) {
+            return false;
+        }
+        seen.add(key);
+        return true;
+    });
+}
+
+/* ---- stripe / badge CSS ---- */
+function stripeClass(k){
+    return k==='waiting'?'bg-[#2e7d32]':k==='scheduled'?'bg-[#f9a825]':k==='completed'?'bg-primary-container':(k==='cancelled'||k==='no_show')?'bg-error':'bg-outline-variant';
+}
+function badgeClass(k){
+    return k==='waiting'?'bg-[#ecf7ef] border border-[#b7e1bf] text-[#1f6b35]':
+           k==='scheduled'?'bg-[#fff8e6] border border-[#f6d88a] text-[#8a5a00]':
+           k==='completed'?'bg-primary-fixed/30 border border-primary/20 text-primary':
+           (k==='cancelled'||k==='no_show')?'bg-error-container border border-error/20 text-on-error-container':
+           'bg-surface-container border border-outline-variant/40 text-outline';
+}
+function modalBadge(k){
+    return k==='waiting'?'bg-[#ecf7ef] text-[#1f6b35]':
+           k==='scheduled'?'bg-[#fff8e6] text-[#8a5a00]':
+           k==='completed'?'bg-primary-fixed/30 text-primary':
+           (k==='cancelled'||k==='no_show')?'bg-error-container text-on-error-container':
+           'bg-surface-container text-outline';
+}
+function priorityBtnClass(ip){
+    return ip?'border-[#fde6c4] bg-[#fff8ec] text-[#8a6018] hover:bg-[#fef3de]':
+              'border-outline-variant/50 text-outline hover:text-primary hover:border-primary/40';
+}
+
+/* ---- card builder ---- */
+function buildCard(p, examineBase, ttsPrefetchUrl){
+    const sid=slugify(p.appointment_id);
+    const announceBtn=p.status_key==='waiting'
+        ?`<button type="button" class="js-announce-btn row-action-btn px-4 py-2.5 rounded-full bg-[#e6f4ea] text-[#1e6a34] font-semibold text-sm hover:bg-[#d7efde] transition-colors shadow-sm flex items-center gap-2" data-appointment-id="${esc(p.appointment_id)}" data-patient-name="${esc(p.name)}" data-queue-position="${esc(p.queue_position || '')}" data-tts-prefetch-url="${ttsPrefetchUrl}" title="Bấm: Mời bệnh nhân. Đè lâu hoặc chuột phải: Xin nhắc lại."><span class="material-symbols-outlined text-[16px]">campaign</span>Phát âm</button>`
+        :'';
+    const examineBtn=p.status_key==='waiting'
+        ?`<button type="button" class="js-examine-call row-action-btn px-5 py-2.5 rounded-full bg-primary text-on-primary font-semibold text-sm hover:bg-primary-container transition-colors shadow-sm shadow-primary/20 flex items-center gap-2" data-appointment-id="${esc(p.appointment_id)}" data-patient-name="${esc(p.name)}" data-examine-url="${examineBase}${esc(p.appointment_id)}/" data-tts-prefetch-url="${ttsPrefetchUrl}"><span class="material-symbols-outlined text-[16px]">stethoscope</span>Khám ngay</button>`:'';
+    const noShowBtn=p.status_key==='scheduled'
+        ?`<button type="button" class="js-noshow-btn row-action-btn px-3 py-2 rounded-full bg-red-50 border border-red-200 text-red-600 font-semibold text-xs hover:bg-red-100 transition-colors flex items-center gap-1" data-appointment-id="${esc(p.appointment_id)}" data-patient-name="${esc(p.name)}" title="Đánh dấu bệnh nhân không đến"><span class="material-symbols-outlined text-[14px]">person_off</span>Không đến</button>`
+        :'';
+    const prioTag=p.isPriority
+        ?`<span class="px-3 py-1 rounded-full text-xs font-semibold bg-[#fff8ec] border border-[#fde6c4] text-[#8a6018] flex items-center gap-1"><span class="material-symbols-outlined text-[14px] icon-filled">star</span>${esc(p.priorityReason||'Ưu tiên')}</span>`:'';
+    const sessLbl=p.time?`<span class="font-label-sm text-[10px] text-outline uppercase">${esc(p.session_label)}</span>`:'';
+    const statusBadge=`<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
+        p.status_key==='waiting'?'bg-[#e6f4ea] text-[#1e6a34]':
+        p.status_key==='scheduled'?'bg-[#fff6e1] text-[#8a5a00]':
+        p.status_key==='completed'?'bg-primary-fixed/40 text-primary':
+        (p.status_key==='cancelled'||p.status_key==='no_show')?'bg-error-container text-on-error-container':'bg-surface-container text-outline'
+    }"><span class="w-1.5 h-1.5 rounded-full ${
+        p.status_key==='waiting'?'bg-[#1e6a34]':
+        p.status_key==='scheduled'?'bg-[#8a5a00]':
+        p.status_key==='completed'?'bg-primary':
+        (p.status_key==='cancelled'||p.status_key==='no_show')?'bg-error':'bg-outline'
+    }"></span>${esc(p.status||'')}</span>`;
+    return `<article class="appointment-row relative rounded-[1.75rem] p-5 flex items-center gap-4 lg:gap-5 flex-nowrap" data-session="${esc(p.session_key)}" data-appointment-id="${esc(p.appointment_id)}" id="apt-${sid}">
+    <div class="absolute left-0 top-0 bottom-0 w-[6px] rounded-l-xl ${stripeClass(p.status_key)}"></div>
+    <div class="pl-4 min-w-[80px] shrink-0">
+        <div class="font-h3 text-h3 text-on-surface font-bold">${esc(p.time_display)}</div>${sessLbl}
+    </div>
+    <div class="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
+        <div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-h3 text-[16px] shrink-0">${esc(String(p.name||'').trim().charAt(0).toUpperCase()||'?')}</div>
+        <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 mb-0.5">
+                <h3 class="font-h3 text-h3 text-on-surface">${esc(p.name)}</h3>
+                ${prioTag}
+            </div>
+            <p class="font-body-md text-body-md text-outline flex gap-2 text-xs">
+                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">schedule</span>${esc(p.time_display)}</span>
+            </p>
+        </div>
+    </div>
+    <div class="flex shrink-0">${statusBadge}</div>
+    <div class="flex items-center gap-2 shrink-0 flex-nowrap">
+        <button type="button" class="row-action-btn w-9 h-9 rounded-full bg-surface-container-high text-outline flex items-center justify-center hover:bg-surface-container-highest hover:text-primary" onclick="openPatientModal('${esc(p.appointment_id)}')" title="Xem chi tiết">
+            <span class="material-symbols-outlined text-[16px]">visibility</span>
+        </button>
+        ${announceBtn}
+        ${examineBtn}
+        ${noShowBtn}
+        ${(p.status_key==='waiting'||p.status_key==='arrived') ? `<button type="button" class="priority-btn row-action-btn px-3 py-2 rounded-full border font-data-mono text-data-mono flex items-center gap-1 whitespace-nowrap ${priorityBtnClass(p.isPriority)} ${p.isPriority?'':'bg-[#edf3f2]'}"
+                data-appointment-id="${esc(p.appointment_id)}" data-patient-id="${esc(p.patient_id)}"
+                data-session-key="${esc(p.session_key)}" data-is-priority="${p.isPriority?'true':'false'}">
+            <span class="material-symbols-outlined text-[14px] ${p.isPriority?'icon-filled':''}">star</span>
+            ${p.isPriority?'Bỏ ưu tiên':'Ưu tiên'}
+        </button>` : ''}
+    </div>
+</article>`;
+}
+
+/* ---- modal builder ---- */
+function buildModal(p, dateTxt){
+    const sid=slugify(p.appointment_id);
+    return `<div id="patientModal${sid}" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closePatientModal('${sid}')"></div>
+    <div class="dashboard-modal-shell relative backdrop-blur-2xl rounded-2xl w-full max-w-md p-lg">
+        <div class="flex items-center justify-between mb-lg pb-4 border-b border-outline-variant/20">
+            <h3 class="font-h3 text-h3 text-on-surface">Thông tin bệnh nhân</h3>
+            <button onclick="closePatientModal('${sid}')" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]">close</span></button>
+        </div>
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Họ tên</div><div class="font-data-mono text-data-mono text-on-surface">${esc(p.name)}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Trạng thái</div><span class="px-2 py-1 rounded-md text-xs font-label-sm ${modalBadge(p.status_key)}">${esc(p.status)}</span></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Giới tính / Tuổi</div><div class="font-body-md text-body-md text-on-surface">${esc(p.gender)}${p.age?' – '+esc(String(p.age))+' tuổi':''}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Ngày sinh</div><div class="font-body-md text-body-md text-on-surface">${esc(p.birthdate)||'-'}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Điện thoại</div><div class="font-body-md text-body-md text-on-surface">${esc(p.phone)||'-'}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Buổi / Giờ</div><div class="font-body-md text-body-md text-on-surface">${esc(dateTxt)} ${esc(p.time_display)}</div></div>
+            </div>
+            ${p.summary_text?`<div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Ghi chú</div><div class="font-body-md text-body-md text-on-surface">${esc(p.summary_text)}</div></div>`:''}
+            ${p.isPriority?`<div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Lý do ưu tiên</div><div class="font-body-md text-body-md text-on-surface">${esc(p.priorityReason||'Bệnh nhân ưu tiên')}</div></div>`:''}
+        </div>
+        <div class="mt-lg pt-4 border-t border-outline-variant/20 flex justify-end">
+            <button onclick="closePatientModal('${sid}')" class="px-5 py-2 bg-surface-container border border-outline-variant/40 rounded-lg font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors">Đóng</button>
+        </div>
+    </div>
+</div>`;
+}
+
+/* ---- toast ---- */
+let _toastTimer=null;
+function showToast(msg){
+    const t=document.getElementById('liveToast');
+    if(!t)return;
+    document.getElementById('liveToastMsg').textContent=msg;
+    t.classList.remove('hidden');
+    if(_toastTimer)clearTimeout(_toastTimer);
+    _toastTimer=setTimeout(()=>t.classList.add('hidden'),3200);
+}
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+document.addEventListener('DOMContentLoaded',function(){
+    const el=document.getElementById('dashboardData');
+    const selectedDate=el.dataset.selectedDate;
+    const isToday=el.dataset.isToday==='true';
+    const pollUrl=el.dataset.pollUrl;
+    const ttsPrefetchUrl=el.dataset.ttsPrefetchUrl;
+    const examineBase=el.dataset.examineBase;
+    const updatePriorityUrl=el.dataset.updatePriorityUrl;
+    const storeKey='dashboard_sess_'+selectedDate;
+
+    const [y,mo,d]=selectedDate.split('-');
+    const dateTxt=`${d}/${mo}/${y}`;
+
+    const liveStatus=document.getElementById('liveStatus');
+    const ttsWarmupSeen = new Set();
+    function setLive(ok){
+        if(!liveStatus)return;
+        liveStatus.textContent=ok
+            ?'Cập nhật: '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+            :'Mất kết nối';
+    }
+
+    /* session filter */
+    let activeSession=sessionStorage.getItem(storeKey)||'all';
+    const list=document.getElementById('appointmentList');
+    const emptyState=document.getElementById('clientEmptyState');
+    const sessBtns=Array.from(document.querySelectorAll('[data-session-filter]'));
+    const announcePressState = new Map();
+
+    function warmupTtsForButton(btn){
+        const appointmentId = btn?.dataset?.appointmentId || '';
+        if (!appointmentId || ttsWarmupSeen.has(appointmentId)) return;
+        ttsWarmupSeen.add(appointmentId);
+        ensureTtsAudioPair(
+            btn.dataset.patientName || 'Bệnh nhân',
+            appointmentId,
+            btn.dataset.ttsPrefetchUrl || ttsPrefetchUrl,
+            btn.dataset.queuePosition || ''
+        ).catch(() => {});
+    }
+
+    function getActionButton(target, selector){
+        const el = target instanceof Element ? target.closest(selector) : null;
+        return el && list.contains(el) ? el : null;
+    }
+
+    function bindListInteractions(){
+        if (list.dataset.actionsBound === '1') return;
+        list.dataset.actionsBound = '1';
+
+        list.addEventListener('pointerover', function(e){
+            const btn = getActionButton(e.target, '.js-announce-btn');
+            if (btn) warmupTtsForButton(btn);
+        });
+
+        list.addEventListener('focusin', function(e){
+            const btn = getActionButton(e.target, '.js-announce-btn');
+            if (btn) warmupTtsForButton(btn);
+        });
+
+        list.addEventListener('pointerdown', function(e){
+            const btn = getActionButton(e.target, '.js-announce-btn');
+            if (!btn || e.button !== 0) return;
+            const appointmentId = btn.dataset.appointmentId || '';
+            if (!appointmentId) return;
+
+            const state = {
+                holdTimer: null,
+                holdTriggered: false,
+            };
+            announcePressState.set(appointmentId, state);
+            state.holdTimer = setTimeout(async function(){
+                state.holdTriggered = true;
+                const name = btn.dataset.patientName || 'Bệnh nhân';
+                const ttsUrl = btn.dataset.ttsPrefetchUrl || ttsPrefetchUrl;
+                await playAnnounce(name, appointmentId, ttsUrl, 'remind', btn.dataset.queuePosition || '');
+            }, 700);
+        });
+
+        function clearPressState(btn){
+            const appointmentId = btn?.dataset?.appointmentId || '';
+            if (!appointmentId) return null;
+            const state = announcePressState.get(appointmentId) || null;
+            if (state && state.holdTimer) {
+                clearTimeout(state.holdTimer);
+                state.holdTimer = null;
+            }
+            return state;
+        }
+
+        list.addEventListener('pointerup', function(e){
+            const btn = getActionButton(e.target, '.js-announce-btn');
+            if (btn) clearPressState(btn);
+        });
+        list.addEventListener('pointercancel', function(e){
+            const btn = getActionButton(e.target, '.js-announce-btn');
+            if (btn) clearPressState(btn);
+        });
+        list.addEventListener('pointerleave', function(e){
+            const btn = getActionButton(e.target, '.js-announce-btn');
+            if (btn) clearPressState(btn);
+        });
+        list.addEventListener('contextmenu', async function(e){
+            const btn = getActionButton(e.target, '.js-announce-btn');
+            if (!btn) return;
+            e.preventDefault();
+            clearPressState(btn);
+            const name = btn.dataset.patientName || 'Bệnh nhân';
+            const appointmentId = btn.dataset.appointmentId || '';
+            const ttsUrl = btn.dataset.ttsPrefetchUrl || ttsPrefetchUrl;
+            await playAnnounce(name, appointmentId, ttsUrl, 'remind', btn.dataset.queuePosition || '');
+        });
+
+        list.addEventListener('click', async function(e){
+            const examineBtn = getActionButton(e.target, '.js-examine-call');
+            if (examineBtn) {
+                const examineUrl = examineBtn.dataset.examineUrl || '';
+                if (!examineUrl) return;
+                window.location.href = examineUrl;
+                return;
+            }
+
+            const announceBtn = getActionButton(e.target, '.js-announce-btn');
+            if (announceBtn) {
+                const appointmentId = announceBtn.dataset.appointmentId || '';
+                const state = announcePressState.get(appointmentId);
+                if (state?.holdTriggered) {
+                    state.holdTriggered = false;
+                    return;
+                }
+                const name = announceBtn.dataset.patientName || 'Bệnh nhân';
+                const ttsUrl = announceBtn.dataset.ttsPrefetchUrl || ttsPrefetchUrl;
+                await playAnnounce(name, appointmentId, ttsUrl, 'call', announceBtn.dataset.queuePosition || '');
+                return;
+            }
+
+            const priorityBtn = getActionButton(e.target, '.priority-btn');
+            if (priorityBtn) {
+                const aId=priorityBtn.dataset.appointmentId,pId=priorityBtn.dataset.patientId,
+                      sKey=priorityBtn.dataset.sessionKey,isPrio=priorityBtn.dataset.isPriority==='true';
+                if(!aId||!sKey){alert('Không tìm thấy lịch hẹn.');return;}
+                if(isPrio){togglePrio(aId,pId,sKey,false,'',null,[]);return;}
+                curAptId=aId;curPatId=pId;curSessKey=sKey;
+                document.getElementById('priorityReason').value = '';
+                openPriorityModalWithCategories();
+                document.getElementById('priorityModal').classList.remove('hidden');
+            }
+
+            const noShowBtn = getActionButton(e.target, '.js-noshow-btn');
+            if (noShowBtn) {
+                const aId = noShowBtn.dataset.appointmentId;
+                const name = noShowBtn.dataset.patientName || 'Bệnh nhân';
+                if (!aId) return;
+                if (!confirm(`Đánh dấu "${name}" không đến khám?`)) return;
+                fetch('{% url "mark_no_show" %}', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token }}'},
+                    body: JSON.stringify({appointment_id: aId, reason: 'manual'})
+                }).then(r => r.json()).then(d => {
+                    if (d.success) { setTimeout(poll, 600); showToast('Đã đánh dấu không đến'); }
+                    else alert('Lỗi: ' + (d.message || 'Không thể cập nhật.'));
+                }).catch(() => alert('Lỗi kết nối.'));
+            }
+        });
+    }
+
+    function applyFilter(){
+        const rows=Array.from(list.querySelectorAll('.appointment-row'));
+        let v=0;
+        rows.forEach(r=>{
+            const match=activeSession==='all'||r.dataset.session===activeSession;
+            r.classList.toggle('is-hidden',!match);
+            if(match)v++;
+        });
+
+        // If current tab hides everything while data exists (e.g. morning tab but only afternoon patients),
+        // switch to "all" to avoid a misleading empty list.
+        if(v===0 && rows.length>0 && activeSession!=='all'){
+            activeSession='all';
+            sessBtns.forEach(b=>b.classList.toggle('is-active',b.dataset.sessionFilter==='all'));
+            rows.forEach(r=>r.classList.remove('is-hidden'));
+            v=rows.length;
+        }
+
+        if(emptyState)emptyState.classList.toggle('hidden',v>0||rows.length===0);
+    }
+    function setActiveBtn(val){
+        sessBtns.forEach(b=>b.classList.toggle('is-active',b.dataset.sessionFilter===val));
+    }
+    setActiveBtn(activeSession); applyFilter(); bindListInteractions();
+
+    sessBtns.forEach(b=>b.addEventListener('click',function(){
+        activeSession=this.dataset.sessionFilter;
+        if(!isToday)sessionStorage.setItem(storeKey,activeSession);
+        setActiveBtn(activeSession); applyFilter();
+    }));
+
+    /* stats update */
+    function updateStats(s){
+        const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+        set('statTotal',s.total); set('statWaiting',s.waiting);
+        set('statCompleted',s.completed); set('statScheduled',s.scheduled);
+        document.querySelectorAll('.tab-total').forEach(e=>e.textContent=s.total);
+        document.querySelectorAll('.tab-morning').forEach(e=>e.textContent=s.morning);
+        document.querySelectorAll('.tab-afternoon').forEach(e=>e.textContent=s.afternoon);
+    }
+
+    /* DOM list update */
+    let lastOrderKey = '';
+    function updateList(appointments){
+        appointments = dedupeAppointments(appointments);
+        const existIds=new Set(Array.from(list.querySelectorAll('.appointment-row')).map(e=>e.dataset.appointmentId));
+        const newIds=new Set(appointments.map(a=>a.appointment_id));
+        /* remove stale */
+        existIds.forEach(id=>{
+            if(!newIds.has(id)){
+                const e=findAppointmentRow(id);
+                if(e)e.remove();
+            }
+        });
+        /* remove server empty */
+        list.querySelectorAll('.server-empty').forEach(e=>e.remove());
+        /* insert / replace (content only, not order yet) — record which ids need flash */
+        const toFlash=[];
+        appointments.forEach((p)=>{
+            const existing=findAppointmentRow(p.appointment_id);
+            /* fingerprint includes prioritySetAt so any priority change triggers re-render */
+            const fp=p.status_key+'|'+p.isPriority+'|'+(p.prioritySetAt||'')+'|'+p.name+'|'+p.time_display;
+            if(!existing){
+                list.insertAdjacentHTML('beforeend',buildCard(p,examineBase,ttsPrefetchUrl));
+                const newEl=findAppointmentRow(p.appointment_id);
+                if(newEl)newEl.dataset.fp=fp;
+            } else {
+                if(existing.dataset.fp!==fp){
+                    /* detect priority change before replacing */
+                    const oldParts=(existing.dataset.fp||'').split('|');
+                    if(oldParts[1]!==String(p.isPriority)) toFlash.push(p.appointment_id);
+                    existing.dataset.fp=fp;
+                    const tmp=document.createElement('div');
+                    tmp.innerHTML=buildCard(p,examineBase,ttsPrefetchUrl);
+                    const newEl=tmp.firstElementChild;
+                    newEl.dataset.fp=fp;
+                    existing.replaceWith(newEl);
+                }
+            }
+        });
+        /* reorder DOM only if order actually changed */
+        const newOrderKey = appointments.map(p=>p.appointment_id).join('|');
+        if (newOrderKey !== lastOrderKey) {
+            lastOrderKey = newOrderKey;
+            appointments.forEach(p=>{
+                const row=findAppointmentRow(p.appointment_id);
+                if(row)list.appendChild(row);
+            });
+        }
+        /* flash AFTER reorder */
+        toFlash.forEach(id=>{
+            const row=findAppointmentRow(id);
+            if(row){
+                row.classList.remove('row-flash');
+                void row.offsetWidth;
+                row.classList.add('row-flash');
+                row.addEventListener('animationend',()=>row.classList.remove('row-flash'),{once:true});
+            }
+        });
+        /* empty state */
+        if(list.querySelectorAll('.appointment-row').length===0&&!list.querySelector('.server-empty')){
+            list.innerHTML=`<div class="server-empty bg-[#edf3f2] border border-outline-variant/50 rounded-xl p-8 text-center shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
+<span class="material-symbols-outlined text-[48px] text-outline/30 block mb-3">event_busy</span>
+<h3 class="font-h3 text-h3 text-on-surface-variant mb-1">Chưa có lịch khám</h3>
+<p class="font-body-md text-body-md text-outline">Không tìm thấy lịch hẹn nào cho ngày đang chọn.</p></div>`;
+        }
+        /* keep shared static modals intact (priority modal, detail modal, toast) */
+        applyFilter();
+    }
+
+    /* ---- poll ---- */
+    let snapshotKey = el.dataset.initialSnapshotKey || '';
+    const INTERVAL = 5000;  // Always poll every 5s
+    let pollTimer = null;
+    let pollPaused = false;
+
+    async function poll(){
+        if (pollPaused) return;
+        try{
+            const qp=snapshotKey
+                ?`date=${encodeURIComponent(selectedDate)}&snapshot_key=${encodeURIComponent(snapshotKey)}`
+                :`date=${encodeURIComponent(selectedDate)}`;
+            const r=await fetch(`${pollUrl}?${qp}`,{credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});
+            if(!r.ok){setLive(false);console.warn('[Dashboard Poll] HTTP',r.status);return;}
+            const data=await r.json();
+            const changed=data.changed!==false;
+            const nextKey=data.snapshot_key||snapshotKey;
+
+            updateStats(data.stats);
+
+            if(changed){
+                const apts=data.appointments||[];
+                updateList(apts);
+                if(snapshotKey&&nextKey!==snapshotKey){
+                    showToast('Lịch khám vừa được cập nhật');
+                }
+            }
+
+            snapshotKey=nextKey;
+            setLive(true);
+        }catch(e){setLive(false);console.error('[Dashboard Poll] error',e);}
+    }
+
+    // Pause polling when tab is hidden, resume when visible
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            pollPaused = true;
+            if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        } else {
+            pollPaused = false;
+            poll(); // Immediate poll on tab focus
+            pollTimer = setInterval(poll, INTERVAL);
+        }
+    });
+
+    // Initial poll + start interval
+    poll();
+    pollTimer = setInterval(poll, INTERVAL);
+
+    /* ---- patient display window ---- */
+    const pdBtn=document.getElementById('openPatientDisplay');
+    if(pdBtn)pdBtn.addEventListener('click',function(e){
+        e.preventDefault();
+        window.open(this.href,'patientDisplayWindow','width=1080,height=720,menubar=no,toolbar=no,location=no');
+    });
+
+    /* ---- priority (4-tier system) ---- */
+    let curAptId='', curPatId='', curSessKey='', selectedTier=null;
+    let priorityCategoriesData = null;
+    let selectedBeneficiaries = [];
+
+    // Load priority categories from API
+    async function loadPriorityCategories() {
+        try {
+            const resp = await fetch('/appointments/priority-categories/');
+            const data = await resp.json();
+            if (data.success) {
+                priorityCategoriesData = data;
+                return data;
+            }
+        } catch (e) {
+            console.error('Failed to load priority categories:', e);
+        }
+        return null;
+    }
+
+    // Render priority tier cards (WITHOUT code display)
+    function renderPriorityTiers() {
+        if (!priorityCategoriesData) return;
+        
+        const container = document.getElementById('priorityTiersList');
+        const tiers = ['critical', 'high', 'medium'];
+        
+        container.innerHTML = '';
+        tiers.forEach(tier => {
+            const cat = priorityCategoriesData.categories[tier];
+            if (!cat) return;
+            
+            const color = priorityCategoriesData.colors[tier] || '#666';
+            const isSelected = selectedTier === tier;
+            
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = `tier-card p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                isSelected 
+                    ? 'border-primary bg-primary/10 ring-2 ring-primary' 
+                    : 'border-outline-variant/30 hover:border-primary/50'
+            }`;
+            card.style.borderColor = isSelected ? color : 'currentColor';
+            card.dataset.tier = tier;
+            
+            card.innerHTML = `
+                <div class="text-left">
+                    <div class="font-label-sm text-label-sm font-bold" style="color:${color}">${cat.label}</div>
+                    <div class="font-caption text-caption text-outline-variant mt-1 line-clamp-2">${cat.description}</div>
+                </div>
+            `;
+            
+            card.addEventListener('click', () => selectTier(tier));
+            container.appendChild(card);
+        });
+    }
+
+    // Select priority tier and render checkboxes
+    function selectTier(tier) {
+        selectedTier = tier;
+        selectedBeneficiaries = [];
+        
+        // Update tier card UI
+        document.querySelectorAll('.tier-card').forEach(card => {
+            const isThis = card.dataset.tier === tier;
+            card.classList.toggle('ring-2', isThis);
+            card.classList.toggle('ring-primary', isThis);
+            card.classList.toggle('bg-primary/10', isThis);
+        });
+        
+        // Render beneficiary checkboxes for this tier
+        const cat = priorityCategoriesData.categories[tier];
+        if (cat && cat.beneficiaries && cat.beneficiaries.length > 0) {
+            const checkboxContainer = document.getElementById('beneficiariesCheckboxContainer');
+            const checkboxList = document.getElementById('beneficiariesCheckboxList');
+            
+            checkboxList.innerHTML = cat.beneficiaries
+                .map((b, idx) => `
+                    <label class="flex items-center gap-2 p-2 rounded hover:bg-surface-container-high cursor-pointer">
+                        <input type="checkbox" class="beneficiary-checkbox" value="${b}" data-tier="${tier}" data-idx="${idx}">
+                        <span class="text-body-sm text-on-surface">${b}</span>
+                    </label>
+                `)
+                .join('');
+            
+            // Show checkboxes immediately after tier selection
+            checkboxContainer.classList.remove('hidden');
+        } else {
+            // Hide if no beneficiaries
+            document.getElementById('beneficiariesCheckboxContainer').classList.add('hidden');
+        }
+    }
+
+    // Handle reason field focus/blur - manage checkbox visibility
+    function setupReasonFieldHandlers() {
+        const reasonField = document.getElementById('priorityReason');
+        const checkboxContainer = document.getElementById('beneficiariesCheckboxContainer');
+        
+        reasonField.addEventListener('blur', () => {
+            // Hide checkboxes only if no text AND no checkboxes checked
+            if (!reasonField.value.trim() && selectedBeneficiaries.length === 0 && selectedTier) {
+                checkboxContainer.classList.add('hidden');
+            }
+        });
+        
+        reasonField.addEventListener('focus', () => {
+            // Show checkboxes if tier is selected and has beneficiaries
+            if (selectedTier && priorityCategoriesData.categories[selectedTier].beneficiaries.length > 0) {
+                checkboxContainer.classList.remove('hidden');
+            }
+        });
+    }
+
+    // Track checkbox changes
+    function setupBeneficiaryCheckboxHandlers() {
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('beneficiary-checkbox')) {
+                selectedBeneficiaries = Array.from(document.querySelectorAll('.beneficiary-checkbox:checked'))
+                    .map(cb => cb.value);
+            }
+        });
+    }
+
+    // Handle modal open
+    function openPriorityModalWithCategories() {
+        if (!priorityCategoriesData) {
+            document.getElementById('priorityCategoriesLoading').classList.remove('hidden');
+            document.getElementById('priorityForm').classList.add('hidden');
+            
+            loadPriorityCategories().then(() => {
+                document.getElementById('priorityCategoriesLoading').classList.add('hidden');
+                document.getElementById('priorityForm').classList.remove('hidden');
+                selectedTier = null;
+                selectedBeneficiaries = [];
+                renderPriorityTiers();
+                setupReasonFieldHandlers();
+                setupBeneficiaryCheckboxHandlers();
+            });
+        } else {
+            document.getElementById('priorityCategoriesLoading').classList.add('hidden');
+            document.getElementById('priorityForm').classList.remove('hidden');
+            selectedTier = null;
+            selectedBeneficiaries = [];
+            renderPriorityTiers();
+            setupReasonFieldHandlers();
+            setupBeneficiaryCheckboxHandlers();
+        }
+    }
+
+    // Confirm priority
+    document.getElementById('confirmPriorityBtn').addEventListener('click', function(){
+        if (!selectedTier) {
+            alert('Vui lòng chọn mức ưu tiên.');
+            return;
+        }
+        
+        const reason = document.getElementById('priorityReason').value.trim();
+        togglePrio(curAptId, curPatId, curSessKey, true, reason, selectedTier, selectedBeneficiaries);
+        closePriorityModal();
+    });
+
+    // Toggle priority (with explicit tier parameter)
+    function togglePrio(aptId, patId, sessKey, isPrio, reason, tier, beneficiaries) {
+        const body = {
+            appointment_id: aptId,
+            patient_id: patId,
+            session_key: sessKey,
+            is_priority: isPrio,
+            priority_reason: reason
+        };
+        
+        // Add tier if provided
+        if (tier) body.priority_tier = tier;
+        
+        // Add selected beneficiaries if any
+        if (beneficiaries && beneficiaries.length > 0) body.selected_beneficiaries = beneficiaries;
+        
+        fetch(updatePriorityUrl, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
+            body: JSON.stringify(body)
+        }).then(r => r.json()).then(d => {
+            if (d.success) setTimeout(poll, 600);
+            else alert('Lỗi: ' + (d.message || 'Không thể cập nhật.'));
+        }).catch(() => alert('Lỗi kết nối.'));
+    }
+});
+</script>
+{% endblock %}
+    

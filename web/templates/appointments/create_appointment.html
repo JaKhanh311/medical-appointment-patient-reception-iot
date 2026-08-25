@@ -1,0 +1,318 @@
+﻿{% extends 'base.html' %}
+{% block title %}Đặt lịch khám – OPDFlow{% endblock %}
+
+{% block extra_style %}
+<style>
+.specialty-page {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.appointment-shell {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.84));
+    border: 1px solid rgba(197, 198, 205, 0.6);
+    border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(30, 41, 59, 0.08);
+    overflow: hidden;
+}
+
+.appointment-glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(197, 198, 205, 0.45);
+}
+
+.form-field {
+    width: 100%;
+    background: #f1f5f9;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 0.75rem 0.875rem;
+    color: #091426;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.form-field:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: #006a61;
+    box-shadow: 0 0 0 4px rgba(0, 106, 97, 0.12);
+}
+
+.form-field::placeholder {
+    color: #7b8794;
+}
+
+.specialty-dropdown { display: none; }
+.specialty-dropdown.is-open { display: block; }
+
+.specialty-option.is-active,
+.specialty-option:hover {
+    background: rgba(0, 106, 97, 0.08);
+    color: #006a61;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="specialty-page">
+    <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <div class="mb-2 flex items-center gap-2 text-outline font-label-sm text-label-sm uppercase tracking-wider">
+                <a href="{% url 'add_patient' %}" class="inline-flex items-center gap-1 text-outline transition-colors hover:text-primary">
+                    <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                    Quay lại danh sách bệnh nhân
+                </a>
+            </div>
+            <h1 class="font-h1 text-h1 text-primary">Đặt lịch khám</h1>
+            <p class="mt-1 font-body-md text-body-md text-on-surface-variant">Tạo lịch hẹn mới cho bệnh nhân.</p>
+        </div>
+    </div>
+
+    <div class="mb-6 rounded-xl border border-secondary-fixed-dim/30 bg-secondary-fixed px-4 py-4 text-on-secondary-fixed shadow-sm">
+        <div class="flex items-start gap-3">
+            <span class="material-symbols-outlined mt-0.5 text-[20px]">info</span>
+            <div>
+                <p class="mb-1 font-label-sm text-label-sm uppercase tracking-wider text-on-secondary-fixed-variant">Bệnh nhân đã chọn</p>
+                <p class="font-body-md text-body-md font-semibold text-on-secondary-fixed">
+                    {{ patient.name }}
+                    {% if patient.birthdate %}&bull; Ngày sinh: {{ patient.birthdate }}{% endif %}
+                    &bull; Mã BN: #{{ patient.patientID|default:patient.id }}
+                    {% if patient.phone %}&bull; {{ patient.phone }}{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="appointment-shell">
+        <div class="appointment-glass flex items-center gap-3 px-6 py-4">
+            <span class="material-symbols-outlined text-secondary text-[22px]">edit_calendar</span>
+            <h2 class="font-h3 text-h3 text-primary">Thông tin lịch hẹn</h2>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="patient_id" value="{{ patient.patientID|default:patient.id }}">
+
+            <div class="space-y-6 px-6 py-6">
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="appointmentDate" class="font-label-sm text-label-sm text-on-surface-variant">Ngày khám</label>
+                        <input id="appointmentDate" type="date" name="appointment_date" value="{{ form_data.appointment_date }}" required class="form-field font-body-md text-body-md">
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label for="sessionField" class="font-label-sm text-label-sm text-on-surface-variant">Buổi khám</label>
+                        <select id="sessionField" name="session" required class="form-field font-body-md text-body-md">
+                            <option id="sessionMorningOption" value="morning" {% if form_data.session == 'morning' %}selected{% endif %}>Buổi sáng (08:00 - 12:00)</option>
+                            <option id="sessionAfternoonOption" value="afternoon" {% if form_data.session == 'afternoon' %}selected{% endif %}>Buổi chiều (13:00 - 17:00)</option>
+                        </select>
+                        <p id="scheduleHint" class="hidden font-body-md text-[12px] text-outline"></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="statusField" class="font-label-sm text-label-sm text-on-surface-variant">Trạng thái</label>
+                        <select id="statusField" name="status" class="form-field font-body-md text-body-md">
+                            <option value="scheduled" {% if form_data.status == 'scheduled' %}selected{% endif %}>Chưa đến</option>
+                            <option value="waiting" {% if form_data.status == 'waiting' %}selected{% endif %}>Đang chờ khám</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                        <label for="specialtyInput" class="font-label-sm text-label-sm text-on-surface-variant">Chuyên khoa / Bác sĩ</label>
+                        <div class="relative" id="specialtyCombobox">
+                            <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-outline text-[20px]">search</span>
+                            <input id="specialtyInput" type="text" autocomplete="off" required placeholder="Tìm chuyên khoa hoặc bác sĩ..." class="form-field pl-10 font-body-md text-body-md">
+                            <input type="hidden" id="specialtyId" name="specialty_id" value="{{ form_data.specialty_id }}">
+                            <div class="specialty-dropdown absolute left-0 right-0 top-full z-20 mt-2 max-h-60 overflow-y-auto rounded-xl border border-outline-variant/60 bg-white p-1 shadow-[0_16px_40px_rgba(30,41,59,0.14)]" id="specialtyDropdown">
+                                {% for item in specialties %}
+                                <button type="button" class="specialty-option w-full rounded-lg px-3 py-2 text-left font-body-md text-body-md text-on-surface transition-colors" data-id="{{ item.id }}" data-name="{{ item.name }}">{{ item.name }}</button>
+                                {% endfor %}
+                                <div class="specialty-empty hidden px-3 py-2 font-body-md text-body-md text-outline" id="specialtyEmpty">Không có chuyên khoa phù hợp.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="reasonField" class="font-label-sm text-label-sm text-on-surface-variant">Lý do khám</label>
+                    <input id="reasonField" type="text" name="reason" value="{{ form_data.reason }}" required placeholder="Mô tả ngắn triệu chứng hoặc mục đích khám" class="form-field font-body-md text-body-md">
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="notesField" class="font-label-sm text-label-sm text-on-surface-variant">Ghi chú lâm sàng</label>
+                    <textarea id="notesField" name="notes" rows="3" placeholder="Thông tin bổ sung dành cho bác sĩ..." class="form-field resize-none font-body-md text-body-md">{{ form_data.notes }}</textarea>
+                </div>
+
+                <div class="grid grid-cols-1 items-end gap-6 md:grid-cols-[minmax(0,1fr)_auto]">
+                    <div class="flex flex-col gap-1.5">
+                        <label for="locationField" class="font-label-sm text-label-sm text-on-surface-variant">Bệnh viện / Địa điểm khám</label>
+                        <select id="locationField" name="location" class="form-field font-body-md text-body-md">
+                            <option value="">-- Chọn bệnh viện --</option>
+                            {% for h in hospitals %}
+                            <option value="{{ h.id }}" {% if form_data.location == h.id %}selected{% endif %}>{{ h.fullName|default:h.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <label for="internationalFlag" class="flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-1 py-3">
+                        <input type="checkbox" name="international" id="internationalFlag" {% if form_data.international %}checked{% endif %} class="h-5 w-5 rounded border-transparent bg-[#F1F5F9] text-secondary focus:ring-secondary/20">
+                        <span class="font-body-md text-body-md text-primary">Bệnh nhân quốc tế (cần phiên dịch)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-4 border-t border-outline-variant/30 bg-surface-container-low px-6 py-4">
+                <a href="{% url 'add_patient' %}" class="rounded-lg border border-outline-variant bg-white px-6 py-2.5 font-label-sm text-label-sm text-primary transition-colors hover:bg-surface-container-highest">Hủy</a>
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-secondary px-6 py-2.5 font-label-sm text-label-sm text-on-secondary shadow-sm transition-colors hover:bg-secondary/90">
+                    <span class="material-symbols-outlined text-[18px]">save</span>
+                    Lưu lịch khám
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const combobox = document.getElementById('specialtyCombobox');
+    const input = document.getElementById('specialtyInput');
+    const hidden = document.getElementById('specialtyId');
+    const dropdown = document.getElementById('specialtyDropdown');
+    const emptyState = document.getElementById('specialtyEmpty');
+    const options = Array.from(document.querySelectorAll('.specialty-option'));
+    const appointmentDate = document.getElementById('appointmentDate');
+    const sessionField = document.getElementById('sessionField');
+    const morningOption = document.getElementById('sessionMorningOption');
+    const hint = document.getElementById('scheduleHint');
+
+    if (!combobox || !input || !hidden || !dropdown) return;
+
+    function normalizeText(value) {
+        return (value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+    }
+    function setSelected(id, name) { hidden.value = id || ''; input.value = name || ''; input.setCustomValidity(''); }
+    function openDropdown() { dropdown.classList.add('is-open'); }
+    function closeDropdown() { dropdown.classList.remove('is-open'); }
+
+    function filterOptions() {
+        const keyword = normalizeText(input.value);
+        let visibleCount = 0;
+        options.forEach(option => {
+            const optionName = normalizeText(option.dataset.name || option.textContent || '');
+            const isMatch = !keyword || optionName.includes(keyword);
+            option.style.display = isMatch ? 'block' : 'none';
+            option.classList.remove('is-active');
+            if (isMatch) visibleCount++;
+        });
+        if (emptyState) emptyState.classList.toggle('hidden', visibleCount !== 0);
+    }
+
+    function syncFromHiddenValue() {
+        const selected = options.find(o => o.dataset.id === hidden.value);
+        if (selected) setSelected(selected.dataset.id, selected.dataset.name || selected.textContent.trim());
+        else { hidden.value = ''; input.value = ''; }
+    }
+
+    options.forEach(option => {
+        option.addEventListener('click', function () {
+            setSelected(this.dataset.id || '', this.dataset.name || this.textContent.trim());
+            closeDropdown();
+        });
+    });
+
+    input.addEventListener('focus', function () { openDropdown(); filterOptions(); });
+    input.addEventListener('click', function () { openDropdown(); filterOptions(); });
+    input.addEventListener('input', function () { hidden.value = ''; openDropdown(); filterOptions(); });
+
+    document.addEventListener('click', function (event) {
+        if (!combobox.contains(event.target)) {
+            closeDropdown();
+            if (!hidden.value) input.setCustomValidity('Vui lòng chọn khoa từ danh sách.');
+            else input.setCustomValidity('');
+        }
+    });
+
+    const form = input.closest('form');
+    if (form) {
+        form.addEventListener('submit', function (event) {
+            if (!hidden.value) { input.setCustomValidity('Vui lòng chọn khoa từ danh sách.'); input.reportValidity(); event.preventDefault(); return; }
+            input.setCustomValidity('');
+        });
+    }
+
+    syncFromHiddenValue();
+    filterOptions();
+
+    function toIsoDate(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    function updateWalkInScheduleRules() {
+        if (!appointmentDate || !sessionField || !morningOption) return;
+
+        const now = new Date();
+        const currentHour = now.getHours();
+        const todayIso = toIsoDate(now);
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        const tomorrowIso = toIsoDate(tomorrow);
+
+        if (currentHour >= 18) {
+            appointmentDate.min = tomorrowIso;
+            if (!appointmentDate.value || appointmentDate.value < tomorrowIso) {
+                appointmentDate.value = tomorrowIso;
+            }
+            sessionField.value = 'morning';
+            morningOption.disabled = false;
+            if (hint) {
+                hint.classList.remove('hidden');
+                hint.textContent = 'Sau 18:00 hệ thống mặc định lịch sang buổi sáng ngày mai.';
+            }
+            return;
+        }
+
+        appointmentDate.min = todayIso;
+        if (appointmentDate.value && appointmentDate.value < todayIso) {
+            appointmentDate.value = todayIso;
+        }
+
+        const isToday = appointmentDate.value === todayIso;
+        const isAfternoonNow = currentHour >= 12;
+
+        if (isToday && isAfternoonNow) {
+            morningOption.disabled = true;
+            if (sessionField.value === 'morning') {
+                sessionField.value = 'afternoon';
+            }
+            if (hint) {
+                hint.classList.remove('hidden');
+                hint.textContent = 'Buổi sáng hôm nay đã qua, vui lòng chọn buổi chiều hoặc ngày khác.';
+            }
+        } else {
+            morningOption.disabled = false;
+            if (hint) {
+                hint.textContent = '';
+                hint.classList.add('hidden');
+            }
+        }
+    }
+
+    if (appointmentDate) {
+        appointmentDate.addEventListener('change', updateWalkInScheduleRules);
+    }
+    if (sessionField) {
+        sessionField.addEventListener('focus', updateWalkInScheduleRules);
+    }
+    updateWalkInScheduleRules();
+});
+</script>
+{% endblock %}

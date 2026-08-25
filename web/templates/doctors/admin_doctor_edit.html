@@ -1,0 +1,180 @@
+{% extends "doctors/admin_base.html" %}
+
+{% block title %}OPDFlow – Sửa bác sĩ{% endblock %}
+{% block page_title %}Chỉnh sửa bác sĩ{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6 animate-in">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="font-display text-2xl font-bold text-surface-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-brand-500 text-[24px]">edit_square</span>
+                Sửa bác sĩ
+            </h2>
+            <p class="text-sm text-slate-500 mt-1">Cập nhật hồ sơ và tài khoản bác sĩ trong hệ thống.</p>
+        </div>
+        <a href="{% url 'admin_portal_dashboard' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-500 hover:text-brand-500 transition-all shadow-sm">
+            <span class="material-symbols-outlined text-[16px]">arrow_back</span>Quay lại
+        </a>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="glass-card">
+        {% csrf_token %}
+        <div class="p-6 space-y-6">
+            <!-- Account Section -->
+            <div class="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50/50 to-teal-50/30 p-5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-brand-500">key</span>Thông tin tài khoản
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tên đăng nhập</label>
+                        <input type="text" name="username" value="{{ doctor.username }}" readonly class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-500 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mật khẩu mới</label>
+                        <input type="text" name="new_password" placeholder="Để trống nếu không đổi" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basic Info Section -->
+            <div class="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50/30 to-indigo-50/20 p-5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-blue-500">person</span>Thông tin cơ bản
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Họ tên</label>
+                        <input type="text" name="full_name" value="{{ doctor.name }}" required class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Chức danh</label>
+                        <input type="text" name="title" value="{{ doctor.title }}" placeholder="PGS.TS.BS" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Giới tính</label>
+                        <select name="gender" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                            <option value="">-- Chọn --</option>
+                            <option value="male" {% if doctor.gender == 'male' %}selected{% endif %}>Nam</option>
+                            <option value="female" {% if doctor.gender == 'female' %}selected{% endif %}>Nữ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email</label>
+                        <input type="email" name="email" value="{{ doctor.email }}" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Số điện thoại</label>
+                        <input type="text" name="phone" value="{{ doctor.phone }}" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Hospital ID</label>
+                        <input type="text" name="hospital_id" value="{{ doctor.hospitalID }}" placeholder="hosp_A" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Ngày sinh</label>
+                        <input type="date" name="date_of_birth" value="{{ doctor.dateOfBirth }}" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Kinh nghiệm (năm)</label>
+                        <input type="number" name="experience" min="0" value="{{ doctor.experience|default:0 }}" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Phí khám dự kiến</label>
+                        <input type="number" name="expected_fee" min="0" value="{{ doctor.expectedFee|default:0 }}" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Chuyên khoa</label>
+                    <select name="specialty_id" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                        <option value="">-- Chọn chuyên khoa --</option>
+                        {% for s in specialties %}<option value="{{ s.id }}" {% if doctor.specialtyID == s.id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50/30 to-violet-50/20 p-5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-purple-500">description</span>Hồ sơ
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tiểu sử</label>
+                        <textarea name="biography" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y">{{ doctor.biography }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Học vấn</label>
+                        <textarea name="education" rows="2" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y">{{ doctor.education }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Chứng chỉ</label>
+                        <textarea name="certifications" rows="2" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y">{{ doctor.certifications }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Extra Section -->
+            <div class="rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50/30 to-amber-50/20 p-5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-orange-500">list</span>Thông tin bổ sung
+                    <span class="text-[10px] font-normal normal-case text-slate-400">(mỗi dòng 1 mục)</span>
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Giải thưởng</label>
+                        <textarea name="awards" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y">{% for item in doctor.awards %}{{ item }}
+{% endfor %}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Chức vụ</label>
+                        <textarea name="positions" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y">{% for item in doctor.positions %}{{ item }}
+{% endfor %}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Công trình nghiên cứu</label>
+                        <textarea name="publications" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y">{% for item in doctor.publications %}{{ item }}
+{% endfor %}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Dịch vụ</label>
+                        <textarea name="services" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y">{% for item in doctor.services %}{{ item }}
+{% endfor %}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Kỹ thuật</label>
+                        <textarea name="techniques" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y">{% for item in doctor.techniques %}{{ item }}
+{% endfor %}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Nơi làm việc</label>
+                        <textarea name="workplaces" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y">{% for item in doctor.workplaces %}{{ item }}
+{% endfor %}</textarea>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-2">
+                    <input type="checkbox" name="is_active" id="is_active" {% if doctor.isActive %}checked{% endif %} class="w-4 h-4 rounded border-slate-300 text-brand-500 focus:ring-brand-500/20">
+                    <label for="is_active" class="text-sm text-slate-700 cursor-pointer">Đang hoạt động</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
+            <a href="{% url 'admin_portal_dashboard' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:border-slate-300 transition-all">
+                <span class="material-symbols-outlined text-[16px]">close</span>Hủy
+            </a>
+            <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl text-sm font-semibold shadow-brand hover:shadow-brand-lg hover:-translate-y-0.5 transition-all">
+                <span class="material-symbols-outlined text-[16px]">save</span>Lưu thay đổi
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

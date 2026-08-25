@@ -1,0 +1,273 @@
+{% extends "doctors/admin_base.html" %}
+
+{% block title %}OPDFlow – Thống kê lịch hẹn{% endblock %}
+{% block page_title %}Thống kê{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-in">
+    <!-- Header -->
+    <div>
+        <h2 class="font-display text-2xl font-bold text-surface-900">Thống kê lịch hẹn</h2>
+        <p class="text-sm text-slate-500 mt-1">Tổng quan và phân tích dữ liệu lịch hẹn trong hệ thống.</p>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="glass-card p-5">
+        <form method="get" class="flex flex-wrap items-end gap-4">
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Từ ngày</label>
+                <input type="date" name="date_from" value="{{ date_from }}"
+                    class="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Đến ngày</label>
+                <input type="date" name="date_to" value="{{ date_to }}"
+                    class="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+            </div>
+            <div class="flex flex-col gap-1 relative">
+                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Chuyên khoa</label>
+                <input type="text" id="specSearchInput" autocomplete="off"
+                    placeholder="Nhập tên khoa..."
+                    value="{% for spec in specialties %}{% if filter_specialty == spec.id %}{{ spec.name }}{% endif %}{% endfor %}"
+                    class="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all min-w-[200px]">
+                <input type="hidden" name="specialty" id="specHiddenInput" value="{{ filter_specialty }}">
+                <div id="specDropdown" class="hidden absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto"></div>
+            </div>
+            <div class="flex flex-col gap-1 relative">
+                <label class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Bác sĩ</label>
+                <input type="text" id="docSearchInput" autocomplete="off"
+                    placeholder="Nhập tên bác sĩ..."
+                    value="{% for doc in doctors %}{% if filter_doctor == doc.id %}{{ doc.name }}{% endif %}{% endfor %}"
+                    class="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all min-w-[200px]">
+                <input type="hidden" name="doctor" id="docHiddenInput" value="{{ filter_doctor }}">
+                <div id="docDropdown" class="hidden absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto"></div>
+            </div>
+            <div class="flex items-end gap-2">
+                <button type="submit"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl text-sm font-semibold shadow-brand hover:shadow-brand-lg hover:-translate-y-0.5 transition-all">
+                    <span class="material-symbols-outlined text-[16px]">filter_alt</span>Lọc
+                </button>
+                <a href="{% url 'admin_statistics' %}"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-slate-300 transition-all">
+                    <span class="material-symbols-outlined text-[16px]">refresh</span>Xóa lọc
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <!-- Total -->
+        <div class="glass-card p-4 text-center">
+            <div class="w-10 h-10 mx-auto mb-2 rounded-xl bg-blue-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-blue-600 text-[20px]">calendar_month</span>
+            </div>
+            <div class="text-2xl font-bold text-surface-900">{{ total }}</div>
+            <div class="text-xs font-medium text-slate-500 mt-1">Tổng lịch hẹn</div>
+        </div>
+        <!-- Completed -->
+        <div class="glass-card p-4 text-center">
+            <div class="w-10 h-10 mx-auto mb-2 rounded-xl bg-emerald-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-emerald-600 text-[20px]">check_circle</span>
+            </div>
+            <div class="text-2xl font-bold text-emerald-700">{{ completed }}</div>
+            <div class="text-xs font-medium text-slate-500 mt-1">Hoàn thành</div>
+        </div>
+        <!-- Cancelled -->
+        <div class="glass-card p-4 text-center">
+            <div class="w-10 h-10 mx-auto mb-2 rounded-xl bg-red-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-red-600 text-[20px]">cancel</span>
+            </div>
+            <div class="text-2xl font-bold text-red-700">{{ cancelled }}</div>
+            <div class="text-xs font-medium text-slate-500 mt-1">Đã hủy</div>
+        </div>
+        <!-- No Show -->
+        <div class="glass-card p-4 text-center">
+            <div class="w-10 h-10 mx-auto mb-2 rounded-xl bg-amber-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-amber-600 text-[20px]">person_off</span>
+            </div>
+            <div class="text-2xl font-bold text-amber-700">{{ no_show }}</div>
+            <div class="text-xs font-medium text-slate-500 mt-1">Vắng mặt</div>
+        </div>
+        <!-- Scheduled -->
+        <div class="glass-card p-4 text-center">
+            <div class="w-10 h-10 mx-auto mb-2 rounded-xl bg-indigo-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-indigo-600 text-[20px]">event</span>
+            </div>
+            <div class="text-2xl font-bold text-indigo-700">{{ scheduled }}</div>
+            <div class="text-xs font-medium text-slate-500 mt-1">Đã lên lịch</div>
+        </div>
+        <!-- Waiting -->
+        <div class="glass-card p-4 text-center">
+            <div class="w-10 h-10 mx-auto mb-2 rounded-xl bg-purple-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-purple-600 text-[20px]">hourglass_top</span>
+            </div>
+            <div class="text-2xl font-bold text-purple-700">{{ waiting }}</div>
+            <div class="text-xs font-medium text-slate-500 mt-1">Đang chờ</div>
+        </div>
+    </div>
+
+    <!-- Breakdown Sections -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- By Specialty -->
+        <div class="glass-card p-5">
+            <h3 class="font-display font-bold text-surface-900 text-lg mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-brand-500 text-[20px]">stethoscope</span>
+                Theo chuyên khoa
+            </h3>
+            {% if specialty_breakdown %}
+            <div class="space-y-3">
+                {% for name, count in specialty_breakdown %}
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-medium text-slate-700 truncate max-w-[200px]">{{ name }}</span>
+                        <span class="text-sm font-bold text-surface-900">{{ count }}</span>
+                    </div>
+                    <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-brand-500 to-brand-400 rounded-full transition-all"
+                            style="width: {% widthratio count max_specialty_count 100 %}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-slate-400 italic">Không có dữ liệu.</p>
+            {% endif %}
+        </div>
+
+        <!-- By Doctor -->
+        <div class="glass-card p-5">
+            <h3 class="font-display font-bold text-surface-900 text-lg mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-brand-500 text-[20px]">person</span>
+                Theo bác sĩ
+            </h3>
+            {% if doctor_breakdown %}
+            <div class="space-y-3">
+                {% for name, count in doctor_breakdown %}
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-medium text-slate-700 truncate max-w-[200px]">{{ name }}</span>
+                        <span class="text-sm font-bold text-surface-900">{{ count }}</span>
+                    </div>
+                    <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full transition-all"
+                            style="width: {% widthratio count max_doctor_count 100 %}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-slate-400 italic">Không có dữ liệu.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Time Distribution -->
+    <div class="glass-card p-5">
+        <h3 class="font-display font-bold text-surface-900 text-lg mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-brand-500 text-[20px]">schedule</span>
+            Phân bố theo buổi
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Morning -->
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-amber-600 text-[24px]">wb_sunny</span>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-semibold text-slate-700">Buổi sáng</span>
+                        <span class="text-sm font-bold text-surface-900">{{ morning_count }}</span>
+                    </div>
+                    <div class="w-full h-4 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-amber-400 to-orange-400 rounded-full transition-all"
+                            style="width: {% widthratio morning_count time_total 100 %}%"></div>
+                    </div>
+                    <div class="text-xs text-slate-500 mt-1">{% widthratio morning_count time_total 100 %}% tổng số</div>
+                </div>
+            </div>
+            <!-- Afternoon -->
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-blue-600 text-[24px]">nights_stay</span>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm font-semibold text-slate-700">Buổi chiều</span>
+                        <span class="text-sm font-bold text-surface-900">{{ afternoon_count }}</span>
+                    </div>
+                    <div class="w-full h-4 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full transition-all"
+                            style="width: {% widthratio afternoon_count time_total 100 %}%"></div>
+                    </div>
+                    <div class="text-xs text-slate-500 mt-1">{% widthratio afternoon_count time_total 100 %}% tổng số</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    // Data from Django context
+    var specialties = [
+        {% for spec in specialties %}{ id: "{{ spec.id }}", name: "{{ spec.name|escapejs }}" },{% endfor %}
+    ];
+    var doctors = [
+        {% for doc in doctors %}{ id: "{{ doc.id }}", name: "{{ doc.name|escapejs }}" },{% endfor %}
+    ];
+
+    function setupAutocomplete(inputId, hiddenId, dropdownId, items) {
+        var input = document.getElementById(inputId);
+        var hidden = document.getElementById(hiddenId);
+        var dropdown = document.getElementById(dropdownId);
+
+        function render(filtered) {
+            if (!filtered.length) { dropdown.classList.add('hidden'); return; }
+            dropdown.innerHTML = filtered.map(function(item) {
+                return '<div class="px-3 py-2 text-sm cursor-pointer hover:bg-brand-50 transition-colors" data-id="' + item.id + '">' + item.name + '</div>';
+            }).join('');
+            dropdown.classList.remove('hidden');
+        }
+
+        input.addEventListener('input', function() {
+            var q = input.value.trim().toLowerCase();
+            hidden.value = '';
+            if (!q) { render(items.slice(0, 10)); return; }
+            var filtered = items.filter(function(item) {
+                return item.name.toLowerCase().indexOf(q) !== -1;
+            });
+            render(filtered.slice(0, 10));
+        });
+
+        input.addEventListener('focus', function() {
+            var q = input.value.trim().toLowerCase();
+            if (!q) { render(items.slice(0, 10)); }
+            else { input.dispatchEvent(new Event('input')); }
+        });
+
+        dropdown.addEventListener('click', function(e) {
+            var target = e.target.closest('[data-id]');
+            if (!target) return;
+            input.value = target.textContent;
+            hidden.value = target.getAttribute('data-id');
+            dropdown.classList.add('hidden');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Clear hidden if user empties the text
+        input.addEventListener('change', function() {
+            if (!input.value.trim()) hidden.value = '';
+        });
+    }
+
+    setupAutocomplete('specSearchInput', 'specHiddenInput', 'specDropdown', specialties);
+    setupAutocomplete('docSearchInput', 'docHiddenInput', 'docDropdown', doctors);
+})();
+</script>
+{% endblock %}

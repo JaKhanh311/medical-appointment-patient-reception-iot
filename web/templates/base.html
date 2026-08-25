@@ -1,0 +1,589 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi" class="light">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>{% block title %}OPDFlow{% endblock %}</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Manrope:wght@500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/></noscript>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+tailwind.config = {
+    darkMode: "class",
+    theme: {
+        extend: {
+            colors: {
+                "on-error-container": "#93000a", "surface-container-low": "#f0f5f2",
+                "on-surface-variant": "#3d4947", "tertiary": "#924628",
+                "on-primary-fixed-variant": "#005049", "surface-bright": "#f5faf8",
+                "secondary-fixed": "#ffddb8", "surface-container-highest": "#dee4e1",
+                "on-surface": "#171d1c", "outline-variant": "#bcc9c6",
+                "error-container": "#ffdad6", "primary": "#00685f",
+                "background": "#f5faf8", "on-primary": "#ffffff",
+                "surface-container": "#eaefed", "on-tertiary-container": "#fffbff",
+                "outline": "#6d7a77", "on-secondary-fixed": "#2a1700",
+                "error": "#ba1a1a", "primary-fixed": "#89f5e7",
+                "surface-container-high": "#e4e9e7", "secondary-container": "#fea619",
+                "surface-dim": "#d6dbd9", "surface-variant": "#dee4e1",
+                "on-background": "#171d1c", "primary-container": "#008378",
+                "on-secondary-container": "#684000", "on-tertiary-fixed": "#370e00",
+                "surface-container-lowest": "#ffffff", "on-secondary": "#ffffff",
+                "primary-fixed-dim": "#6bd8cb", "on-tertiary": "#ffffff",
+                "surface-tint": "#006a61", "inverse-surface": "#2c3130",
+                "surface": "#f5faf8", "tertiary-fixed-dim": "#ffb59a",
+                "on-tertiary-fixed-variant": "#773215", "on-secondary-fixed-variant": "#653e00",
+                "on-primary-fixed": "#00201d", "on-error": "#ffffff",
+                "inverse-on-surface": "#edf2f0", "secondary-fixed-dim": "#ffb95f",
+                "inverse-primary": "#6bd8cb", "on-primary-container": "#f4fffc",
+                "tertiary-fixed": "#ffdbce", "secondary": "#855300",
+                "tertiary-container": "#b05e3d"
+            },
+            borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+            spacing: { "sm": "8px", "container-max": "1440px", "lg": "24px", "gutter": "24px", "xl": "32px", "unit": "4px", "margin": "32px", "xs": "4px", "md": "16px" },
+            fontFamily: { "h3": ["Manrope","Tahoma","Segoe UI","sans-serif"], "h2": ["Manrope","Tahoma","Segoe UI","sans-serif"], "data-mono": ["Inter","Tahoma","Segoe UI","sans-serif"], "body-lg": ["Inter","Tahoma","Segoe UI","sans-serif"], "label-sm": ["Inter","Tahoma","Segoe UI","sans-serif"], "body-md": ["Inter","Tahoma","Segoe UI","sans-serif"], "h1": ["Manrope","Tahoma","Segoe UI","sans-serif"] },
+            fontSize: {
+                "h3": ["20px", {"lineHeight":"28px","fontWeight":"600"}],
+                "h2": ["24px", {"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],
+                "data-mono": ["14px", {"lineHeight":"20px","fontWeight":"600"}],
+                "body-lg": ["16px", {"lineHeight":"24px","fontWeight":"400"}],
+                "label-sm": ["12px", {"lineHeight":"16px","letterSpacing":"0.05em","fontWeight":"600"}],
+                "body-md": ["14px", {"lineHeight":"20px","fontWeight":"400"}],
+                "h1": ["32px", {"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}]
+            }
+        }
+    }
+}
+</script>
+<style>
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+body { background: linear-gradient(135deg, #f5faf8 0%, #eaefed 100%); font-family: 'Inter', Tahoma, 'Segoe UI', sans-serif; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.icon-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+.app-sidebar {
+    width: 260px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+body.sidebar-collapsed .app-sidebar {
+    width: 68px;
+}
+
+.app-top-nav {
+    left: 260px;
+    width: calc(100vw - 260px);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.sidebar-collapsed .app-top-nav {
+    left: 68px;
+    width: calc(100vw - 68px);
+}
+
+.app-main {
+    margin-left: 260px;
+    width: calc(100vw - 260px);
+    min-width: 0;
+    background: #dce5e3;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.sidebar-collapsed .app-main {
+    margin-left: 68px;
+    width: calc(100vw - 68px);
+}
+
+body.sidebar-init .app-sidebar,
+body.sidebar-init .app-top-nav,
+body.sidebar-init .app-main,
+body.sidebar-init .sidebar-label,
+body.sidebar-init .sidebar-footer-label,
+body.sidebar-init .brand-title,
+body.sidebar-init .sidebar-link,
+body.sidebar-init .sidebar-link::after,
+body.sidebar-init .sidebar-link-icon,
+body.sidebar-init .sidebar-logo-horizontal,
+body.sidebar-init .sidebar-logo-icon {
+    transition: none !important;
+}
+
+.sidebar-label,
+.sidebar-footer-label,
+.brand-title {
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 200px;
+}
+
+body.sidebar-collapsed .sidebar-label,
+body.sidebar-collapsed .sidebar-footer-label,
+body.sidebar-collapsed .brand-title {
+    opacity: 0;
+    max-width: 0;
+}
+
+body.sidebar-collapsed .sidebar-link {
+    justify-content: center;
+    gap: 0;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+body.sidebar-collapsed .sidebar-link::before,
+body.sidebar-collapsed .sidebar-footer-link::before {
+    content: attr(data-sidebar-tooltip);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%) translateX(-4px) scale(0.96);
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    background: rgba(23, 29, 28, 0.96);
+    color: #ffffff;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+    z-index: 60;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.sidebar-link::after,
+.sidebar-footer-link::after {
+    content: '';
+    position: absolute;
+    left: calc(100% + 6px);
+    top: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: rgba(23, 29, 28, 0.96);
+    transform: translateY(-50%) rotate(45deg);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 59;
+    transition: opacity 0.18s ease;
+}
+
+body.sidebar-collapsed .sidebar-link:hover::before,
+body.sidebar-collapsed .sidebar-footer-link:hover::before {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0) scale(1);
+    animation: sidebar-tooltip-pop 0.24s ease-out;
+}
+
+body.sidebar-collapsed .sidebar-link:hover::after,
+body.sidebar-collapsed .sidebar-footer-link:hover::after {
+    opacity: 1;
+}
+
+body.sidebar-collapsed .sidebar-footer-link {
+    position: relative;
+    justify-content: center;
+}
+
+body.sidebar-collapsed .app-sidebar {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+body.sidebar-collapsed .app-sidebar > div:first-child {
+    padding-left: 0;
+    padding-right: 0;
+    justify-content: center;
+}
+
+.sidebar-logo-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 3.5rem; /* h-14 */
+    width: 100%;
+    overflow: hidden;
+}
+
+.sidebar-logo-horizontal {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    object-fit: contain;
+    max-height: 3.5rem;
+    width: auto;
+    opacity: 1;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease;
+}
+
+.sidebar-logo-icon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0.82);
+    object-fit: contain;
+    width: 1.75rem;
+    height: 1.75rem;
+    opacity: 0;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.16s ease;
+    pointer-events: none;
+}
+
+body.sidebar-logo-collapsed .sidebar-logo-horizontal {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.92);
+    transition-delay: 0s;
+    pointer-events: none;
+}
+
+body.sidebar-logo-collapsed .sidebar-logo-icon {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    transition-delay: 0.08s;
+    pointer-events: auto;
+}
+
+body:not(.sidebar-collapsed):not(.sidebar-logo-collapsed) .sidebar-logo-icon {
+    transition-delay: 0s;
+}
+
+@media (max-width: 1024px) {
+    .app-sidebar {
+        width: 260px;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.sidebar-open .app-sidebar {
+        transform: translateX(0);
+    }
+
+    .app-top-nav,
+    .app-main {
+        left: 0;
+        margin-left: 0;
+        width: 100vw;
+    }
+}
+
+.sidebar-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, background-color 0.3s ease-out, color 0.3s ease-out;
+}
+
+.sidebar-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1rem;
+    border: 1px solid transparent;
+    pointer-events: none;
+    transition: border-color 0.3s ease-out;
+}
+
+.sidebar-link-idle {
+    color: #6d7a77;
+}
+
+.sidebar-link-idle:hover {
+    background: rgba(255, 255, 255, 0.88);
+    color: #00685f;
+    transform: translateX(4px) scale(1.02);
+    box-shadow: 0 14px 28px rgba(30, 41, 59, 0.08), 0 2px 10px rgba(30, 41, 59, 0.05);
+}
+
+.sidebar-link-idle:hover::after {
+    border-color: rgba(0, 104, 95, 0.2);
+}
+
+.sidebar-link-active {
+    color: #00685f;
+    background: linear-gradient(135deg, rgba(137, 245, 231, 0.38), rgba(255, 255, 255, 0.92));
+    box-shadow: 0 12px 28px rgba(0, 104, 95, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transform: translateX(2px);
+}
+
+.sidebar-link-active::after {
+    border-color: rgba(0, 104, 95, 0.24);
+}
+
+.sidebar-link-icon {
+    transition: transform 0.3s ease-out, color 0.3s ease-out;
+}
+
+.sidebar-link-idle:hover .sidebar-link-icon,
+.sidebar-link-active .sidebar-link-icon {
+    transform: scale(1.08);
+    color: #00685f;
+}
+
+.sidebar-link-idle:hover .sidebar-link-icon {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(0, 104, 95, 0.18);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.sidebar-link-active .sidebar-link-icon {
+    background: linear-gradient(135deg, rgba(137, 245, 231, 0.75), rgba(255, 255, 255, 0.95));
+    border-color: rgba(0, 104, 95, 0.32);
+    box-shadow:
+        0 10px 22px rgba(0, 104, 95, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    color: #00685f;
+}
+
+body.sidebar-collapsed .sidebar-link-active .sidebar-link-icon {
+    transform: scale(1.12);
+    animation: sidebar-icon-pop 1.8s ease-in-out infinite;
+}
+
+@keyframes sidebar-icon-pop {
+    0%, 100% {
+        box-shadow:
+            0 10px 22px rgba(0, 104, 95, 0.16),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    }
+    50% {
+        box-shadow:
+            0 14px 28px rgba(0, 104, 95, 0.24),
+            0 0 0 4px rgba(0, 104, 95, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    }
+}
+
+@keyframes sidebar-tooltip-pop {
+    0% {
+        opacity: 0;
+        transform: translateY(-50%) translateX(-8px) scale(0.88);
+    }
+    70% {
+        opacity: 1;
+        transform: translateY(-50%) translateX(1px) scale(1.03);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0) scale(1);
+    }
+}
+
+.doctor-top-nav {
+    position: relative;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(244, 248, 247, 0.92) 100%);
+    border-bottom: 1px solid rgba(0, 104, 95, 0.12);
+    box-shadow:
+        0 8px 18px rgba(15, 23, 42, 0.09),
+        0 2px 6px rgba(15, 23, 42, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.doctor-top-nav::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.1));
+    pointer-events: none;
+}
+
+.doctor-top-nav::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(0, 104, 95, 0.04), rgba(0, 104, 95, 0.12), rgba(0, 104, 95, 0.04));
+    pointer-events: none;
+}
+{% block extra_style %}{% endblock %}
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body class="text-on-background font-body-md antialiased overflow-hidden flex sidebar-init">
+<script>
+(function () {
+    try {
+        if (localStorage.getItem('doctor_sidebar_collapsed') === '1') {
+            document.body.classList.add('sidebar-collapsed');
+            document.body.classList.add('sidebar-logo-collapsed');
+        }
+    } catch (e) {
+        // Ignore storage read failures (privacy mode, restricted storage, etc.)
+    }
+})();
+</script>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="app-sidebar fixed left-0 top-0 h-full bg-white/90 backdrop-blur-2xl border-r border-white/30 shadow-[0_8px_30px_rgba(30,41,59,0.04)] z-50 flex flex-col p-4">
+    <div class="px-4 py-4 mb-4 flex items-center justify-center border-b border-outline-variant/20">
+        <div class="sidebar-logo-wrap">
+            <img src="{% static 'images/logo_horizontal.svg' %}" alt="OPDFlow" class="sidebar-logo-horizontal">
+            <img src="{% static 'images/logo_icon.svg' %}" alt="OPDFlow" class="sidebar-logo-icon">
+        </div>
+    </div>
+    <nav class="flex-1 space-y-2">
+        {% with url_name=request.resolver_match.url_name %}
+        <a href="{% url 'dashboard' %}" title="Dashboard" data-sidebar-tooltip="Dashboard" class="sidebar-link {% if url_name == 'dashboard' %}sidebar-link-active{% else %}sidebar-link-idle{% endif %}">
+            <span class="material-symbols-outlined sidebar-link-icon {% if url_name == 'dashboard' %}icon-filled{% endif %}">dashboard</span>
+            <span class="sidebar-label font-body-md text-body-md {% if url_name == 'dashboard' %}font-bold{% else %}font-medium{% endif %}">Dashboard</span>
+        </a>
+        <a href="{% url 'patient_display' %}" title="Phòng chờ" data-sidebar-tooltip="Phòng chờ" class="sidebar-link {% if url_name == 'patient_display' %}sidebar-link-active{% else %}sidebar-link-idle{% endif %}">
+            <span class="material-symbols-outlined sidebar-link-icon {% if url_name == 'patient_display' %}icon-filled{% endif %}">event_seat</span>
+            <span class="sidebar-label font-body-md text-body-md {% if url_name == 'patient_display' %}font-bold{% else %}font-medium{% endif %}">Phòng chờ</span>
+        </a>
+        <a href="{% url 'add_patient' %}" title="Bệnh nhân" data-sidebar-tooltip="Bệnh nhân" class="sidebar-link {% if url_name == 'add_patient' or url_name == 'create_appointment' %}sidebar-link-active{% else %}sidebar-link-idle{% endif %}">
+            <span class="material-symbols-outlined sidebar-link-icon {% if url_name == 'add_patient' or url_name == 'create_appointment' %}icon-filled{% endif %}">group</span>
+            <span class="sidebar-label font-body-md text-body-md {% if url_name == 'add_patient' or url_name == 'create_appointment' %}font-bold{% else %}font-medium{% endif %}">Bệnh nhân</span>
+        </a>
+        <a href="{% url 'patient_records' %}" title="Hồ sơ" data-sidebar-tooltip="Hồ sơ" class="sidebar-link {% if url_name == 'patient_records' or url_name == 'patient_record' %}sidebar-link-active{% else %}sidebar-link-idle{% endif %}">
+            <span class="material-symbols-outlined sidebar-link-icon {% if url_name == 'patient_records' or url_name == 'patient_record' %}icon-filled{% endif %}">folder_managed</span>
+            <span class="sidebar-label font-body-md text-body-md {% if url_name == 'patient_records' or url_name == 'patient_record' %}font-bold{% else %}font-medium{% endif %}">Hồ sơ</span>
+        </a>
+        <a href="{% url 'statistics' %}" title="Thống kê" data-sidebar-tooltip="Thống kê" class="sidebar-link {% if url_name == 'statistics' %}sidebar-link-active{% else %}sidebar-link-idle{% endif %}">
+            <span class="material-symbols-outlined sidebar-link-icon {% if url_name == 'statistics' %}icon-filled{% endif %}">leaderboard</span>
+            <span class="sidebar-label font-body-md text-body-md {% if url_name == 'statistics' %}font-bold{% else %}font-medium{% endif %}">Thống kê</span>
+        </a>
+        <a href="{% url 'history' %}" title="Lịch sử" data-sidebar-tooltip="Lịch sử" class="sidebar-link {% if url_name == 'history' %}sidebar-link-active{% else %}sidebar-link-idle{% endif %}">
+            <span class="material-symbols-outlined sidebar-link-icon {% if url_name == 'history' %}icon-filled{% endif %}">history</span>
+            <span class="sidebar-label font-body-md text-body-md {% if url_name == 'history' %}font-bold{% else %}font-medium{% endif %}">Lịch sử</span>
+        </a>
+        {% endwith %}
+    </nav>
+    <div class="mt-auto space-y-1 pt-4 border-t border-outline-variant/20">
+        <a href="{% url 'logout' %}" title="Đăng xuất" data-sidebar-tooltip="Đăng xuất" class="sidebar-footer-link flex items-center gap-3 px-4 py-3 text-outline hover:text-error hover:bg-error-container/30 transition-all duration-200 rounded-lg">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="sidebar-footer-label font-body-md text-body-md font-medium">Đăng xuất</span>
+        </a>
+    </div>
+</aside>
+
+<!-- ===== TOP NAV ===== -->
+<header class="app-top-nav doctor-top-nav fixed top-0 h-16 backdrop-blur-xl z-40 flex items-center justify-between px-4 md:px-6 lg:px-8">
+    <div class="flex items-center gap-3 min-w-0">
+        <button type="button" id="sidebarToggle" aria-label="Thu gọn/mở rộng sidebar" class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-surface-container-high text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-colors">
+            <span class="material-symbols-outlined text-[20px]">menu_open</span>
+        </button>
+        <div class="font-h2 text-h2 text-primary tracking-tight truncate">OPDFlow Clinical</div>
+    </div>
+    <div class="hidden md:flex items-center gap-3">
+        <div class="text-right">
+            <div class="font-data-mono text-data-mono text-on-surface leading-tight">BS. {{ request.session.doctor_name|default:"Bác sĩ" }}</div>
+            {% if request.session.specialty_name %}<div class="font-label-sm text-label-sm text-outline">{{ request.session.specialty_name }}</div>{% endif %}
+        </div>
+        <div class="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+            <span class="material-symbols-outlined text-[18px]">person</span>
+        </div>
+    </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<main class="app-main flex-1 pt-16 h-screen overflow-y-auto overflow-x-hidden">
+    {% if messages %}
+    <div class="px-8 pt-4 space-y-2">
+        {% for message in messages %}
+        <div class="js-flash-message {% if 'welcome' in message.tags %}js-welcome-toast{% endif %} px-4 py-3 rounded-lg border flex items-center gap-3 font-body-md text-body-md
+            {% if message.tags == 'error' or message.tags == 'danger' %}bg-error-container text-on-error-container border-error/20
+            {% elif message.tags == 'success' %}bg-primary-fixed/30 text-on-surface border-primary/20
+            {% else %}bg-surface-container text-on-surface border-outline-variant/40{% endif %}">
+            <span class="material-symbols-outlined text-[18px]">{% if message.tags == 'error' or message.tags == 'danger' %}error{% elif message.tags == 'success' %}check_circle{% else %}info{% endif %}</span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="w-full p-4 md:p-6 lg:p-8 pb-24">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const body = document.body;
+    let logoSwapTimer = null;
+
+    // Re-enable transitions after the first paint to avoid cross-page sidebar jitter.
+    requestAnimationFrame(function () {
+        body.classList.remove('sidebar-init');
+    });
+
+    if (sidebarToggle) {
+        const storageKey = 'doctor_sidebar_collapsed';
+
+        sidebarToggle.addEventListener('click', function () {
+            if (window.innerWidth <= 1024) {
+                body.classList.toggle('sidebar-open');
+                return;
+            }
+
+            if (logoSwapTimer) {
+                clearTimeout(logoSwapTimer);
+                logoSwapTimer = null;
+            }
+
+            const isCollapsing = !body.classList.contains('sidebar-collapsed');
+
+            if (isCollapsing) {
+                // Collapse sidebar first, then swap logo for smoother perception.
+                body.classList.add('sidebar-collapsed');
+                localStorage.setItem(storageKey, '1');
+                logoSwapTimer = setTimeout(function () {
+                    body.classList.add('sidebar-logo-collapsed');
+                    logoSwapTimer = null;
+                }, 180);
+                return;
+            }
+
+            // Expand sidebar first, then restore full logo.
+            body.classList.remove('sidebar-collapsed');
+            localStorage.setItem(storageKey, '0');
+            logoSwapTimer = setTimeout(function () {
+                body.classList.remove('sidebar-logo-collapsed');
+                logoSwapTimer = null;
+            }, 120);
+        });
+    }
+
+    const welcomeToasts = document.querySelectorAll('.js-welcome-toast');
+    welcomeToasts.forEach(function (toast) {
+        setTimeout(function () {
+            toast.style.transition = 'opacity 0.6s ease, transform 0.6s ease, max-height 0.6s ease, margin 0.6s ease';
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-6px)';
+            toast.style.maxHeight = '0';
+            toast.style.margin = '0';
+            toast.style.overflow = 'hidden';
+            setTimeout(function () {
+                toast.remove();
+            }, 620);
+        }, 5000);
+    });
+});
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

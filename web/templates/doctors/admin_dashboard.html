@@ -1,0 +1,135 @@
+{% extends "doctors/admin_base.html" %}
+
+{% block title %}OPDFlow – Quản trị hệ thống{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-in">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h2 class="font-display text-2xl font-bold text-surface-900">Danh sách bác sĩ</h2>
+            <p class="text-sm text-slate-500 mt-1">Quản lý hồ sơ và tài khoản bác sĩ trong hệ thống.</p>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+            <!-- Search -->
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400 pointer-events-none">search</span>
+                <input type="text" id="doctor-search" placeholder="Tìm bác sĩ..." class="pl-10 pr-4 py-2.5 w-64 bg-white border border-slate-200/80 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all shadow-sm">
+            </div>
+            <a href="{% url 'admin_fhir_export' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-500 hover:text-brand-500 transition-all shadow-sm hover:shadow-md">
+                <span class="material-symbols-outlined text-[16px]">cloud_download</span>FHIR R4
+            </a>
+            <a href="{% url 'admin_doctor_provision' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-500 hover:text-brand-500 transition-all shadow-sm hover:shadow-md">
+                <span class="material-symbols-outlined text-[16px]">lock_reset</span>Đổi mật khẩu
+            </a>
+            <a href="{% url 'admin_doctor_add' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl text-sm font-semibold shadow-brand hover:shadow-brand-lg hover:-translate-y-0.5 transition-all">
+                <span class="material-symbols-outlined text-[16px]">person_add</span>Thêm bác sĩ
+            </a>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="glass-card overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-slate-50/80">
+                        <th class="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                            <span class="inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">badge</span>Mã bác sĩ</span>
+                        </th>
+                        <th class="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                            <span class="inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">person</span>Họ tên</span>
+                        </th>
+                        <th class="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                            <span class="inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">alternate_email</span>Tài khoản</span>
+                        </th>
+                        <th class="px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                            <span class="inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[14px]">stethoscope</span>Chuyên khoa</span>
+                        </th>
+                        <th class="px-5 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider text-slate-500">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="doctor-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
+        <!-- Pagination -->
+        <div class="flex items-center justify-between px-5 py-3.5 border-t border-slate-100 bg-slate-50/40">
+            <span id="page-info" class="text-xs font-medium text-slate-500">Trang 1 / 1</span>
+            <div class="flex gap-2">
+                <button id="prev-page" class="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:border-brand-500 hover:text-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                    <span class="material-symbols-outlined text-[14px]">chevron_left</span>Trước
+                </button>
+                <button id="next-page" class="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:border-brand-500 hover:text-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                    Sau<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ doctors|json_script:"doctor-data" }}
+<script>
+const allDoctors = JSON.parse(document.getElementById("doctor-data").textContent);
+let filteredDoctors = [...allDoctors];
+const tableBody = document.getElementById("doctor-table-body");
+const pageInfo = document.getElementById("page-info");
+const prevBtn = document.getElementById("prev-page");
+const nextBtn = document.getElementById("next-page");
+const searchInput = document.getElementById("doctor-search");
+const perPage = 12;
+let currentPage = 1;
+
+function totalPages() { return Math.ceil(filteredDoctors.length / perPage) || 1; }
+
+function renderDoctors() {
+    const start = (currentPage - 1) * perPage;
+    const doctors = filteredDoctors.slice(start, start + perPage);
+    if (!doctors.length) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-12 text-slate-400">
+            <span class="material-symbols-outlined text-[32px] block mb-2">search_off</span>
+            <span class="text-sm">Không tìm thấy bác sĩ phù hợp</span>
+        </td></tr>`;
+        return;
+    }
+    tableBody.innerHTML = doctors.map(d => `<tr class="hover:bg-brand-50/30 transition-colors">
+        <td class="px-5 py-3.5"><span class="font-mono text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">${d.id}</span></td>
+        <td class="px-5 py-3.5"><span class="font-semibold text-sm text-surface-900">${d.name || '-'}</span></td>
+        <td class="px-5 py-3.5"><span class="text-sm text-slate-600">${d.username || '-'}</span></td>
+        <td class="px-5 py-3.5">${d.specialty_name
+            ? '<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold"><span class="material-symbols-outlined text-[12px]">local_hospital</span>'+d.specialty_name+'</span>'
+            : '<span class="text-xs text-slate-400">Chưa gán</span>'}</td>
+        <td class="px-5 py-3.5 text-right">
+            <div class="inline-flex gap-2">
+                <a href="/admin-doctors/${d.id}/history/" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:border-brand-500 hover:text-brand-500 transition-all">
+                    <span class="material-symbols-outlined text-[13px]">history</span>Lịch sử
+                </a>
+                <a href="/admin-doctors/${d.id}/edit/" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-brand-50 border border-brand-200 rounded-lg text-xs font-medium text-brand-600 hover:bg-brand-100 transition-all">
+                    <span class="material-symbols-outlined text-[13px]">edit</span>Sửa
+                </a>
+            </div>
+        </td>
+    </tr>`).join("");
+    pageInfo.textContent = `Trang ${currentPage} / ${totalPages()} (${filteredDoctors.length} bác sĩ)`;
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage === totalPages();
+}
+
+prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderDoctors(); } };
+nextBtn.onclick = () => { if (currentPage < totalPages()) { currentPage++; renderDoctors(); } };
+searchInput.addEventListener("input", () => {
+    const q = searchInput.value.toLowerCase();
+    filteredDoctors = allDoctors.filter(d =>
+        (d.id||"").toLowerCase().includes(q) ||
+        (d.name||"").toLowerCase().includes(q) ||
+        (d.username||"").toLowerCase().includes(q) ||
+        (d.specialty_name||"").toLowerCase().includes(q)
+    );
+    currentPage = 1;
+    renderDoctors();
+});
+renderDoctors();
+</script>
+{% endblock %}

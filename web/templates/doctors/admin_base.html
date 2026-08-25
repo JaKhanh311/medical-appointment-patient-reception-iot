@@ -1,0 +1,346 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>{% block title %}OPDFlow Admin{% endblock %}</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                brand: { 50:'#f0fdfa', 100:'#ccfbf1', 200:'#99f6e4', 300:'#5eead4', 400:'#2dd4bf', 500:'#00685f', 600:'#005a52', 700:'#004d46', 800:'#003d38', 900:'#002e2a' },
+                surface: { 50:'#f8fafc', 100:'#f1f5f9', 200:'#e2e8f0', 300:'#cbd5e1', 400:'#94a3b8', 500:'#64748b', 600:'#475569', 700:'#334155', 800:'#1e293b', 900:'#0f172a' },
+            },
+            fontFamily: {
+                sans: ['Inter', 'Tahoma', 'Segoe UI', 'sans-serif'],
+                display: ['Manrope', 'Tahoma', 'Segoe UI', 'sans-serif'],
+            },
+            boxShadow: {
+                'glass': '0 8px 32px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04)',
+                'glass-lg': '0 16px 48px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.05)',
+                'glass-xl': '0 24px 64px rgba(15, 23, 42, 0.10), 0 8px 20px rgba(15, 23, 42, 0.06)',
+                'brand': '0 8px 24px rgba(0, 104, 95, 0.20)',
+                'brand-lg': '0 12px 32px rgba(0, 104, 95, 0.28)',
+            }
+        }
+    }
+}
+</script>
+<style>
+body { font-family: 'Inter', Tahoma, 'Segoe UI', sans-serif; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.icon-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+/* Admin Sidebar */
+.admin-sidebar {
+    width: 260px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #1e2538;
+    border-right: 1px solid rgba(255,255,255,0.06);
+}
+.admin-sidebar nav::-webkit-scrollbar { display: none; }
+body.admin-sidebar-collapsed .admin-sidebar { width: 72px; }
+
+/* Disable transitions on page load to prevent animation flash */
+body.admin-no-transition .admin-sidebar,
+body.admin-no-transition .admin-main,
+body.admin-no-transition .admin-topbar,
+body.admin-no-transition .sidebar-text,
+body.admin-no-transition .nav-item,
+body.admin-no-transition .nav-icon {
+    transition: none !important;
+}
+
+/* Main content area */
+.admin-main {
+    margin-left: 260px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #e8ecf1;
+    min-height: 100vh;
+}
+body.admin-sidebar-collapsed .admin-main { margin-left: 72px; }
+
+.admin-topbar {
+    left: 260px;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+body.admin-sidebar-collapsed .admin-topbar { left: 72px; }
+
+/* Sidebar labels */
+.sidebar-text {
+    transition: opacity 0.2s ease, max-width 0.3s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    color: rgba(255,255,255,0.7);
+}
+body.admin-sidebar-collapsed .sidebar-text { opacity: 0; max-width: 0; }
+
+/* Sidebar nav items */
+.nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    color: rgba(255,255,255,0.55);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255,255,255,0.9);
+    transform: translateX(2px);
+}
+.nav-item.active {
+    background: linear-gradient(135deg, rgba(0, 104, 95, 0.25), rgba(0, 131, 120, 0.15));
+    color: #5eead4;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.2);
+}
+.nav-item .nav-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    color: rgba(255,255,255,0.6);
+}
+.nav-item:hover .nav-icon {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.9);
+}
+.nav-item.active .nav-icon {
+    background: linear-gradient(135deg, rgba(0, 104, 95, 0.3), rgba(94, 234, 212, 0.15));
+    border-color: rgba(94, 234, 212, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 104, 95, 0.2);
+    color: #5eead4;
+}
+body.admin-sidebar-collapsed .nav-item { justify-content: center; padding: 10px 8px; gap: 0; }
+body.admin-sidebar-collapsed .nav-item .nav-icon { width: 40px; height: 40px; }
+body.admin-sidebar-collapsed .nav-item.active {
+    background: none;
+    box-shadow: none;
+}
+body.admin-sidebar-collapsed .nav-item.active .nav-icon {
+    background: linear-gradient(135deg, rgba(0, 104, 95, 0.3), rgba(94, 234, 212, 0.15));
+    border-color: rgba(94, 234, 212, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 104, 95, 0.2);
+    color: #5eead4;
+}
+
+/* Tooltip for collapsed sidebar */
+body.admin-sidebar-collapsed .nav-item::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%) scale(0.95);
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    z-index: 100;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+body.admin-sidebar-collapsed .nav-item:hover::after { opacity: 1; transform: translateY(-50%) scale(1); }
+
+/* Glass card */
+.glass-card {
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-card:hover {
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.10);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .admin-sidebar { transform: translateX(-100%); position: fixed; z-index: 60; }
+    body.admin-sidebar-open .admin-sidebar { transform: translateX(0); }
+    .admin-main { margin-left: 0; }
+    .admin-topbar { left: 0; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeInUp 0.4s ease forwards; }
+
+{% block extra_style %}{% endblock %}
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body class="bg-[#eef1f5] min-h-screen antialiased admin-no-transition">
+<script>
+// Restore sidebar state BEFORE first paint to prevent animation flash
+(function() {
+    try {
+        if (localStorage.getItem('admin_sidebar_collapsed') === '1') {
+            document.body.classList.add('admin-sidebar-collapsed');
+        }
+    } catch(e) {}
+})();
+</script>
+
+<!-- SIDEBAR -->
+<aside class="admin-sidebar fixed left-0 top-0 h-full z-50 flex flex-col overflow-hidden">
+    <!-- Logo -->
+    <div class="px-5 py-5">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-brand">
+                <span class="material-symbols-outlined icon-filled text-white text-[18px]">shield_person</span>
+            </div>
+            <div class="sidebar-text">
+                <div class="font-display font-bold text-[15px] text-white leading-tight">OPDFlow</div>
+                <div class="text-[11px] font-medium text-teal-400 tracking-wide uppercase">Admin Portal</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden" style="scrollbar-width:none;">
+        <div class="sidebar-text px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-white/30">Quản lý</div>
+
+        {% with url_name=request.resolver_match.url_name %}
+        <a href="{% url 'admin_portal_dashboard' %}" class="nav-item {% if url_name == 'admin_portal_dashboard' %}active{% endif %}" data-tooltip="Dashboard">
+            <span class="nav-icon"><span class="material-symbols-outlined text-[18px] {% if url_name == 'admin_portal_dashboard' %}icon-filled{% endif %}">dashboard</span></span>
+            <span class="sidebar-text">Dashboard</span>
+        </a>
+        <a href="{% url 'admin_doctor_add' %}" class="nav-item {% if url_name == 'admin_doctor_add' %}active{% endif %}" data-tooltip="Thêm bác sĩ">
+            <span class="nav-icon"><span class="material-symbols-outlined text-[18px] {% if url_name == 'admin_doctor_add' %}icon-filled{% endif %}">person_add</span></span>
+            <span class="sidebar-text">Thêm bác sĩ</span>
+        </a>
+        <a href="{% url 'admin_doctor_provision' %}" class="nav-item {% if url_name == 'admin_doctor_provision' %}active{% endif %}" data-tooltip="Đổi mật khẩu">
+            <span class="nav-icon"><span class="material-symbols-outlined text-[18px] {% if url_name == 'admin_doctor_provision' %}icon-filled{% endif %}">lock_reset</span></span>
+            <span class="sidebar-text">Đổi mật khẩu</span>
+        </a>
+
+        <div class="sidebar-text px-3 mt-5 mb-2 text-[10px] font-bold uppercase tracking-widest text-white/30">Công cụ</div>
+        <a href="{% url 'admin_statistics' %}" class="nav-item {% if url_name == 'admin_statistics' %}active{% endif %}" data-tooltip="Thống kê">
+            <span class="nav-icon"><span class="material-symbols-outlined text-[18px] {% if url_name == 'admin_statistics' %}icon-filled{% endif %}">bar_chart</span></span>
+            <span class="sidebar-text">Thống kê</span>
+        </a>
+        <a href="{% url 'admin_fhir_export' %}" class="nav-item {% if url_name == 'admin_fhir_export' %}active{% endif %}" data-tooltip="Xuất FHIR R4">
+            <span class="nav-icon"><span class="material-symbols-outlined text-[18px] {% if url_name == 'admin_fhir_export' %}icon-filled{% endif %}">cloud_download</span></span>
+            <span class="sidebar-text">Xuất FHIR R4</span>
+        </a>
+        {% endwith %}
+    </nav>
+
+    <!-- Footer -->
+    <div class="px-3 py-4 mt-auto">
+        <a href="{% url 'home' %}" class="nav-item" data-tooltip="Về trang chủ">
+            <span class="nav-icon"><span class="material-symbols-outlined text-[18px]">home</span></span>
+            <span class="sidebar-text">Trang chủ</span>
+        </a>
+        <a href="{% url 'admin_portal_logout' %}" class="nav-item !text-red-400 hover:!text-red-300 hover:!bg-red-500/10" data-tooltip="Đăng xuất">
+            <span class="nav-icon !bg-red-500/10 !border-red-500/20"><span class="material-symbols-outlined text-[18px] text-red-400">logout</span></span>
+            <span class="sidebar-text !text-red-400">Đăng xuất</span>
+        </a>
+    </div>
+</aside>
+
+<!-- TOP BAR -->
+<header class="admin-topbar fixed top-0 right-0 h-16 z-40 flex items-center justify-between px-6">
+    <div class="flex items-center gap-3">
+        <button type="button" id="adminSidebarToggle" class="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors lg:hidden">
+            <span class="material-symbols-outlined text-[20px] text-slate-600">menu</span>
+        </button>
+        <button type="button" id="adminSidebarCollapse" class="hidden lg:flex w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 items-center justify-center transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-600">menu_open</span>
+        </button>
+        <div class="hidden sm:block">
+            <h1 class="font-display font-bold text-surface-900 text-[17px] leading-tight">{% block page_title %}Admin{% endblock %}</h1>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        <div class="text-right hidden md:block">
+            <div class="text-sm font-semibold text-surface-800">{{ request.session.admin_portal_name|default:"Admin" }}</div>
+            <div class="text-[11px] text-slate-500">{{ request.session.admin_portal_email|default:"admin@opdflow.vn" }}</div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-brand">
+            <span class="material-symbols-outlined text-white text-[16px]">admin_panel_settings</span>
+        </div>
+    </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="admin-main pt-16 min-h-screen">
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="px-6 pt-4 space-y-2">
+        {% for message in messages %}
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium animate-in
+            {% if message.tags == 'error' or message.tags == 'danger' %}bg-red-50 text-red-700 border-red-200
+            {% elif message.tags == 'success' %}bg-emerald-50 text-emerald-700 border-emerald-200
+            {% else %}bg-blue-50 text-blue-700 border-blue-200{% endif %}">
+            <span class="material-symbols-outlined text-[18px]">{% if message.tags == 'error' or message.tags == 'danger' %}error{% elif message.tags == 'success' %}check_circle{% else %}info{% endif %}</span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="p-6">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const collapseBtn = document.getElementById('adminSidebarCollapse');
+    const mobileBtn = document.getElementById('adminSidebarToggle');
+    const body = document.body;
+    const storageKey = 'admin_sidebar_collapsed';
+
+    // Re-enable transitions after first paint
+    requestAnimationFrame(function() {
+        body.classList.remove('admin-no-transition');
+    });
+
+    if (collapseBtn) {
+        collapseBtn.addEventListener('click', function() {
+            body.classList.toggle('admin-sidebar-collapsed');
+            localStorage.setItem(storageKey, body.classList.contains('admin-sidebar-collapsed') ? '1' : '0');
+        });
+    }
+
+    if (mobileBtn) {
+        mobileBtn.addEventListener('click', function() {
+            body.classList.toggle('admin-sidebar-open');
+        });
+    }
+});
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

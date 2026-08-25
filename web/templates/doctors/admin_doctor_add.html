@@ -1,0 +1,171 @@
+{% extends "doctors/admin_base.html" %}
+
+{% block title %}OPDFlow – Thêm bác sĩ{% endblock %}
+{% block page_title %}Thêm bác sĩ mới{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6 animate-in">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="font-display text-2xl font-bold text-surface-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-brand-500 text-[24px]">person_add</span>
+                Thêm bác sĩ mới
+            </h2>
+            <p class="text-sm text-slate-500 mt-1">Tạo hồ sơ và tài khoản bác sĩ trong hệ thống.</p>
+        </div>
+        <a href="{% url 'admin_portal_dashboard' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-500 hover:text-brand-500 transition-all shadow-sm">
+            <span class="material-symbols-outlined text-[16px]">arrow_back</span>Quay lại
+        </a>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="glass-card">
+        {% csrf_token %}
+        <div class="p-6 space-y-6">
+            <!-- Account Section -->
+            <section class="rounded-xl border border-slate-200 bg-white p-5">
+                <header class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[16px] text-brand-500">key</span>Tài khoản đăng nhập
+                    </h3>
+                </header>
+                <div class="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-200 mb-4">
+                    <span class="material-symbols-outlined text-[16px] text-slate-500 mt-0.5">info</span>
+                    <span class="text-xs text-slate-600 leading-relaxed">
+                        Tài khoản đăng nhập = Email · Mật khẩu mặc định = ngày sinh dạng <code class="px-1 py-0.5 rounded bg-white border border-slate-200 text-[11px]">ddmmyyyy</code>.
+                        Ví dụ: 15/03/1990 → mật khẩu <code class="px-1 py-0.5 rounded bg-white border border-slate-200 text-[11px]">15031990</code>.
+                    </span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email <span class="text-rose-500">*</span></label>
+                        <input type="email" name="email" required placeholder="doctor@example.com" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Ngày sinh <span class="text-rose-500">*</span></label>
+                        <input type="date" name="date_of_birth" required class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Basic Info Section -->
+            <section class="rounded-xl border border-slate-200 bg-white p-5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-brand-500">person</span>Thông tin cơ bản
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Họ tên <span class="text-rose-500">*</span></label>
+                        <input type="text" name="full_name" required class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Chức danh</label>
+                        <input type="text" name="title" placeholder="PGS.TS.BS" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Giới tính</label>
+                        <select name="gender" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                            <option value="">-- Chọn --</option>
+                            <option value="male">Nam</option>
+                            <option value="female">Nữ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Số điện thoại</label>
+                        <input type="text" name="phone" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Chuyên khoa</label>
+                        <select name="specialty_id" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                            <option value="">-- Chọn chuyên khoa --</option>
+                            {% for s in specialties %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Kinh nghiệm (năm)</label>
+                        <input type="number" name="experience" min="0" value="0" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Phí khám dự kiến</label>
+                        <input type="number" name="expected_fee" min="0" value="0" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile Section -->
+            <section class="rounded-xl border border-slate-200 bg-white p-5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-brand-500">description</span>Hồ sơ chuyên môn
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tiểu sử</label>
+                        <textarea name="biography" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Học vấn</label>
+                        <textarea name="education" rows="2" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Chứng chỉ</label>
+                        <textarea name="certifications" rows="2" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y"></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Extra Section -->
+            <section class="rounded-xl border border-slate-200 bg-white p-5">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px] text-brand-500">list</span>Thông tin bổ sung
+                    <span class="text-[10px] font-normal normal-case text-slate-400">(mỗi dòng 1 mục)</span>
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Giải thưởng</label>
+                        <textarea name="awards" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Chức vụ</label>
+                        <textarea name="positions" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Công trình nghiên cứu</label>
+                        <textarea name="publications" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Dịch vụ</label>
+                        <textarea name="services" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Kỹ thuật</label>
+                        <textarea name="techniques" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Nơi làm việc</label>
+                        <textarea name="workplaces" rows="3" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all resize-y"></textarea>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-2">
+                    <input type="checkbox" name="is_active" id="is_active" checked class="w-4 h-4 rounded border-slate-300 text-brand-500 focus:ring-brand-500/20">
+                    <label for="is_active" class="text-sm text-slate-700 cursor-pointer">Đang hoạt động</label>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
+            <a href="{% url 'admin_portal_dashboard' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:border-slate-300 transition-all">
+                <span class="material-symbols-outlined text-[16px]">close</span>Hủy
+            </a>
+            <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl text-sm font-semibold shadow-brand hover:shadow-brand-lg hover:-translate-y-0.5 transition-all">
+                <span class="material-symbols-outlined text-[16px]">save</span>Lưu bác sĩ
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

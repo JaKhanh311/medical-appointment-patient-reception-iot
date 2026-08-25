@@ -1,0 +1,178 @@
+{% extends "doctors/admin_base.html" %}
+
+{% block title %}OPDFlow – Đổi mật khẩu bác sĩ{% endblock %}
+{% block page_title %}Đổi mật khẩu{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-in">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+            <h2 class="font-display text-2xl font-bold text-surface-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-brand-500 text-[24px]">lock_reset</span>
+                Đổi mật khẩu bác sĩ
+            </h2>
+            <p class="text-sm text-slate-500 mt-1">Chọn bác sĩ và đặt mật khẩu mới cho tài khoản đăng nhập.</p>
+        </div>
+        <a href="{% url 'admin_portal_dashboard' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-500 hover:text-brand-500 transition-all shadow-sm">
+            <span class="material-symbols-outlined text-[16px]">arrow_back</span>Dashboard
+        </a>
+    </div>
+
+    <!-- Two-column layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+        <!-- Doctor List (3/5) -->
+        <div class="lg:col-span-3 glass-card overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/40">
+                <div class="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                        <h3 class="font-display font-bold text-surface-900 text-[15px] flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px] text-slate-500">group</span>
+                            Danh sách bác sĩ
+                        </h3>
+                        <div class="text-xs text-slate-500 mt-0.5" id="doctor-range-text">Hiển thị 0-0 / 0 bác sĩ.</div>
+                    </div>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-slate-400 pointer-events-none">search</span>
+                        <input type="text" id="doctor-search-input" placeholder="Tìm bác sĩ..." class="pl-9 pr-4 py-2 w-52 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-slate-50/60">
+                            <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Mã</th>
+                            <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Tên</th>
+                            <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Email</th>
+                            <th class="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-slate-500">Chọn</th>
+                        </tr>
+                    </thead>
+                    <tbody id="doctor-table-body" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+            <div class="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50/40">
+                <span id="doctor-page-info" class="text-xs font-medium text-slate-500">Trang 1 / 1</span>
+                <div class="flex gap-2">
+                    <button id="doctor-prev-page" class="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:border-brand-500 hover:text-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                        <span class="material-symbols-outlined text-[14px]">chevron_left</span>Trước
+                    </button>
+                    <button id="doctor-next-page" class="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:border-brand-500 hover:text-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                        Sau<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Password Form (2/5) -->
+        <div class="lg:col-span-2 glass-card p-5">
+            <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                <h3 class="font-display font-bold text-surface-900 text-[15px] flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px] text-slate-500">lock_reset</span>
+                    Đổi mật khẩu
+                </h3>
+                {% if selected_doctor %}
+                <span class="font-mono text-xs text-brand-600 bg-brand-50 border border-brand-200 px-2.5 py-1 rounded-lg">{{ selected_doctor.id }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Hint -->
+            <div class="flex items-start gap-2.5 p-3 rounded-xl bg-brand-50/50 border border-brand-200/50 mb-5">
+                <span class="material-symbols-outlined text-[16px] text-brand-500 mt-0.5">info</span>
+                <span class="text-xs text-brand-700 leading-relaxed">Mật khẩu mới phải từ 6 ký tự trở lên. Mật khẩu mặc định khi tạo bác sĩ là ngày sinh (ddmmyyyy).</span>
+            </div>
+
+            {% if selected_doctor %}
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="doctor_id" value="{{ selected_doctor.id }}">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Bác sĩ</label>
+                    <input type="text" value="{{ selected_doctor.name }}" readonly class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-500 cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Tài khoản (email)</label>
+                    <input type="text" value="{{ selected_doctor.email|default:selected_doctor.username }}" readonly class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-500 cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mật khẩu mới</label>
+                    <input type="text" name="new_password" minlength="6" required placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+                </div>
+                <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl text-sm font-semibold shadow-brand hover:shadow-brand-lg hover:-translate-y-0.5 transition-all mt-2">
+                    <span class="material-symbols-outlined text-[16px]">lock_reset</span>Đổi mật khẩu
+                </button>
+            </form>
+            {% else %}
+            <div class="text-center py-8">
+                <span class="material-symbols-outlined text-[40px] text-slate-300 block mb-3">person_search</span>
+                <p class="text-sm text-slate-400">Chọn một bác sĩ ở bảng bên trái để đổi mật khẩu.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ doctors_without_account|json_script:"doctors-without-account-data" }}
+<script>
+(function() {
+    const dataEl = document.getElementById("doctors-without-account-data");
+    const allDoctors = dataEl ? JSON.parse(dataEl.textContent) : [];
+    const searchInput = document.getElementById("doctor-search-input");
+    const tableBody = document.getElementById("doctor-table-body");
+    const rangeText = document.getElementById("doctor-range-text");
+    const pageInfo = document.getElementById("doctor-page-info");
+    const prevBtn = document.getElementById("doctor-prev-page");
+    const nextBtn = document.getElementById("doctor-next-page");
+    const perPage = 10;
+    let currentPage = 1;
+    let filteredDoctors = allDoctors.slice();
+
+    function normalizeText(v) { return (v||"").toString().toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu,"").replace(/đ/g,"d"); }
+    function totalPages() { return Math.max(1, Math.ceil(filteredDoctors.length / perPage)); }
+
+    function renderRows() {
+        const tp = totalPages();
+        if (currentPage > tp) currentPage = tp;
+        const start = (currentPage - 1) * perPage;
+        const page = filteredDoctors.slice(start, start + perPage);
+        if (!page.length) {
+            tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-slate-400">
+                <span class="material-symbols-outlined text-[28px] block mb-2">search_off</span>
+                <span class="text-sm">Không có bác sĩ phù hợp</span>
+            </td></tr>`;
+        } else {
+            tableBody.innerHTML = page.map(d => `<tr class="hover:bg-brand-50/30 transition-colors">
+                <td class="px-5 py-3"><span class="font-mono text-xs text-slate-500">${d.id||""}</span></td>
+                <td class="px-5 py-3">
+                    <div class="font-semibold text-sm text-surface-900">${d.name||"-"}</div>
+                </td>
+                <td class="px-5 py-3"><span class="text-sm text-slate-600">${d.email||d.username||'-'}</span></td>
+                <td class="px-5 py-3 text-right">
+                    <a href="?doctor_id=${encodeURIComponent(d.id||"")}" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-brand-50 border border-brand-200 rounded-lg text-xs font-medium text-brand-600 hover:bg-brand-100 transition-all">Chọn</a>
+                </td>
+            </tr>`).join("");
+        }
+        const si = filteredDoctors.length ? start+1 : 0;
+        const ei = Math.min(start+perPage, filteredDoctors.length);
+        rangeText.textContent = `Hiển thị ${si}-${ei} / ${filteredDoctors.length} bác sĩ.`;
+        pageInfo.textContent = `Trang ${currentPage} / ${tp}`;
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= tp;
+    }
+
+    function applySearch() {
+        const q = normalizeText(searchInput.value.trim());
+        filteredDoctors = !q ? allDoctors.slice() : allDoctors.filter(d => [d.id,d.name,d.email,d.username].some(f => normalizeText(f).includes(q)));
+        currentPage = 1;
+        renderRows();
+    }
+
+    searchInput.addEventListener("input", applySearch);
+    prevBtn.addEventListener("click", () => { if (currentPage > 1) { currentPage--; renderRows(); } });
+    nextBtn.addEventListener("click", () => { if (currentPage < totalPages()) { currentPage++; renderRows(); } });
+    renderRows();
+})();
+</script>
+{% endblock %}

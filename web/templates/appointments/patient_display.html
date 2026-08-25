@@ -1,0 +1,209 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phòng chờ</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#00685f',
+                        'primary-container': '#008378',
+                        'surface-tint': '#00685f',
+                        'on-primary': '#ffffff',
+                        'surface': '#f5faf8',
+                        'surface-variant': '#dce5e3',
+                        'outline': '#6f7977',
+                        'outline-variant': '#bec9c7',
+                        'surface-container-lowest': '#ffffff',
+                        'surface-container-low': '#eff4f2',
+                        'surface-container': '#e9efed',
+                        'secondary-container': '#fea619',
+                        'error': '#ba1a1a',
+                        'on-surface': '#171d1c',
+                        'on-surface-variant': '#3f4947',
+                    },
+                    fontFamily: {
+                        heading: ['Manrope', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .icon-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+        .queue-row {
+            height: calc((100vh - 180px) / 15);
+            min-height: 38px;
+        }
+    </style>
+</head>
+<body class="h-screen overflow-hidden bg-gradient-to-br from-[#e8f5f3] via-[#f5faf8] to-[#e3f0ee] text-on-surface">
+    <!-- Main content -->
+    <main class="h-screen w-screen p-3 md:p-4">
+        <section class="h-full w-full bg-surface-container-lowest/90 backdrop-blur-xl border border-white/60 rounded-2xl shadow-lg overflow-hidden flex flex-col">
+            <div class="flex-1 min-h-0 overflow-auto">
+            <table class="w-full border-collapse table-fixed">
+                <thead>
+                    <tr class="bg-gradient-to-r from-primary to-primary-container text-white">
+                        <th class="sticky top-0 z-10 py-2.5 px-3 md:px-4 text-center font-heading font-semibold uppercase tracking-wider text-xs md:text-sm w-14 md:w-16 bg-primary">STT</th>
+                        <th class="sticky top-0 z-10 py-2.5 px-3 md:px-4 text-left font-heading font-semibold uppercase tracking-wider text-xs md:text-sm bg-primary">Họ và tên</th>
+                        <th class="sticky top-0 z-10 py-2.5 px-3 md:px-4 text-center font-heading font-semibold uppercase tracking-wider text-xs md:text-sm w-28 md:w-36 bg-primary">Buổi / Giờ hẹn</th>
+                        <th class="sticky top-0 z-10 py-2.5 px-3 md:px-4 text-center font-heading font-semibold uppercase tracking-wider text-xs md:text-sm w-36 md:w-44 bg-primary">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in all_today_appointments %}
+                    <tr class="queue-row border-b border-surface-variant/50 {% cycle 'bg-white' 'bg-surface-container-low/40' %}" data-apt-id="{{ p.appointment_id }}">
+                        <td class="py-2 px-3 md:px-4 text-center font-heading font-bold text-outline text-sm md:text-base">{{ p.queue_number|default:forloop.counter }}</td>
+                        <td class="py-2 px-3 md:px-4">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold font-heading text-sm shrink-0">
+                                    {{ p.name|slice:":1"|upper }}
+                                </div>
+                                <span class="font-heading font-semibold text-on-surface text-sm md:text-base truncate">{{ p.name }}</span>
+                                {% if p.isPriority %}
+                                <span class="material-symbols-outlined text-secondary-container text-[16px] icon-filled shrink-0" title="Ưu tiên">star</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="py-2 px-3 md:px-4 text-center font-body font-medium text-on-surface-variant text-sm whitespace-nowrap">{{ p.time_display }}</td>
+                        <td class="py-2 px-3 md:px-4 text-center">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap
+                                {% if p.status_key == 'waiting' %}bg-[#fff8ec] border border-[#fde6c4] text-[#8a6018]
+                                {% elif p.status_key == 'completed' %}bg-primary/10 border border-primary/20 text-primary
+                                {% elif p.status_key == 'cancelled' %}bg-red-50 border border-red-200 text-red-700
+                                {% else %}bg-surface-container border border-outline-variant/40 text-outline{% endif %}">
+                                {% if p.status_key == 'waiting' %}<span class="w-1.5 h-1.5 rounded-full bg-secondary-container pulse-dot inline-block"></span>{% endif %}
+                                {% if p.status_key == 'waiting' %}ĐANG CHỜ KHÁM{% else %}{{ p.status|upper }}{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-12 text-center">
+                            <span class="material-symbols-outlined text-[48px] text-outline/30 block mb-2">event_busy</span>
+                            <p class="font-body text-outline text-base">Chưa có bệnh nhân nào hôm nay</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+    (function () {
+        const POLL_URL = "{% url 'patient_display_poll' %}";
+        const DATE_PARAM = "{{ selected_date_iso }}";
+        const INTERVAL = 5000;
+        let snapshotKey = '{{ initial_snapshot_key }}';
+
+        function esc(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function buildRow(p, idx) {
+            const isWaiting = p.status_key === 'waiting';
+            const rowBg = idx % 2 === 0 ? 'bg-white' : 'bg-surface-container-low/40';
+            const statusBadge = isWaiting
+                ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap bg-[#fff8ec] border border-[#fde6c4] text-[#8a6018]">
+                       <span class="w-1.5 h-1.5 rounded-full bg-secondary-container pulse-dot inline-block"></span>ĐANG CHỜ KHÁM
+                   </span>`
+                : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap bg-surface-container border border-outline-variant/40 text-outline">
+                       ${esc(p.status ? p.status.toUpperCase() : '')}
+                   </span>`;
+            const prioStar = p.isPriority
+                ? `<span class="material-symbols-outlined text-secondary-container text-[16px] icon-filled shrink-0" title="Ưu tiên">star</span>`
+                : '';
+            return `<tr class="queue-row border-b border-surface-variant/50 ${rowBg}" data-apt-id="${esc(p.appointment_id)}">
+                <td class="py-2 px-3 md:px-4 text-center font-heading font-bold text-outline text-sm md:text-base">${esc(p.queue_number || (idx + 1))}</td>
+                <td class="py-2 px-3 md:px-4">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold font-heading text-sm shrink-0">
+                            ${esc((p.name || '?').trim().charAt(0).toUpperCase())}
+                        </div>
+                        <span class="font-heading font-semibold text-on-surface text-sm md:text-base truncate">${esc(p.name)}</span>
+                        ${prioStar}
+                    </div>
+                </td>
+                <td class="py-2 px-3 md:px-4 text-center font-body font-medium text-on-surface-variant text-sm whitespace-nowrap">${esc(p.time_display)}</td>
+                <td class="py-2 px-3 md:px-4 text-center">${statusBadge}</td>
+            </tr>`;
+        }
+
+        function buildEmpty() {
+            return `<tr data-empty>
+                <td colspan="4" class="py-12 text-center">
+                    <span class="material-symbols-outlined text-[48px] text-outline/30 block mb-2">event_busy</span>
+                    <p class="font-body text-outline text-base">Chưa có bệnh nhân nào hôm nay</p>
+                </td>
+            </tr>`;
+        }
+
+        function updateTable(appointments) {
+            const tbody = document.querySelector('tbody');
+            if (!tbody) return;
+
+            const deduped = [];
+            const seen = new Set();
+            (appointments || []).forEach((a) => {
+                const id = String(a.appointment_id || '');
+                if (!id || seen.has(id)) return;
+                seen.add(id);
+                deduped.push(a);
+            });
+
+            if (deduped.length === 0) {
+                tbody.innerHTML = buildEmpty();
+                return;
+            }
+
+            // Deterministic render avoids stale/duplicated rows when server-rendered
+            // rows and client-rendered rows coexist.
+            tbody.innerHTML = deduped.map((p, idx) => buildRow(p, idx)).join('');
+        }
+
+        async function poll() {
+            try {
+                const url = `${POLL_URL}?date=${encodeURIComponent(DATE_PARAM)}&snapshot_key=${encodeURIComponent(snapshotKey)}`;
+                const res = await fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                if (!res.ok) {
+                    console.warn('[PatientDisplay Poll] HTTP', res.status);
+                    return;
+                }
+                const data = await res.json();
+                if (data.changed) {
+                    snapshotKey = data.snapshot_key;
+                    updateTable(data.appointments);
+                }
+            } catch (err) {
+                console.error('[PatientDisplay Poll] error', err);
+            }
+        }
+
+        // Initial poll, then every INTERVAL ms.
+        poll();
+        setInterval(poll, INTERVAL);
+    })();
+    </script>
+</body>
+</html>

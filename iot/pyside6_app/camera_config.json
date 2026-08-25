@@ -1,0 +1,17 @@
+{
+  "camera_index": "0",
+  "auto_camera": true,
+  "brightness": 80,
+  "contrast": 1.15,
+  "gain": 15,
+  "exposure": -1,
+  "focus": 20,
+  "sharpness": 70,
+  "saturation": 200,
+  "roi_scale": 0.6,
+  "roi_height_scale": 0.7,
+  "camera_width": 1280,
+  "camera_height": 720,
+  "camera_fps": 30,
+  "custom_message": "M\u00e3 l\u1ecbch h\u1eb9n \u0111\u00e3 b\u1ecb h\u1ee7y ho\u1eb7c qu\u00e1 h\u1ea1n vui l\u00f2ng ki\u1ec3m tra l\u1ea1i"
+}

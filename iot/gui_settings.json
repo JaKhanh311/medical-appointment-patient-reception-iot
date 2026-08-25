@@ -1,0 +1,15 @@
+{
+  "scanner": {
+    "camera_index": "0",
+    "patients_path": "patients",
+    "appointments_path": "appointment_new"
+  },
+  "appearance": {
+    "theme": "dark"
+  },
+  "auth": {
+    "remember_login": true,
+    "email": "khanhthiennckh@gmail.com",
+    "password": "Khanhthien@1"
+  }
+}

@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPDFlow – Tin tức sức khỏe</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300..700,0..1&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef5ff',
+                            100: '#d8e8ff',
+                            500: '#0057b7',
+                            600: '#004a9c',
+                            700: '#003b7d'
+                        },
+                        slateink: '#0d1c2e'
+                    },
+                    boxShadow: {
+                        card: '0 8px 26px rgba(0, 87, 183, 0.10)'
+                    },
+                    fontFamily: {
+                        sans: ['Public Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slateink font-sans antialiased">
+    <header class="sticky top-0 z-40 border-b border-brand-100 bg-white/95 backdrop-blur">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+            <a href="{% url 'home' %}" class="inline-flex items-center gap-2 text-sm font-semibold text-brand-700 hover:text-brand-600">
+                <span class="material-symbols-outlined text-base">arrow_back</span>
+                Quay lại trang chủ
+            </a>
+            <div class="flex items-center gap-2">
+                <img src="{% static 'images/logo_icon.svg' %}" alt="OPDFlow" class="h-7 w-7 object-contain">
+                <p class="text-sm font-bold text-slate-700">OPDFlow – Tin tức sức khỏe</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        <section class="rounded-3xl border border-brand-100 bg-white p-6 shadow-card sm:p-8">
+            <p class="text-xs font-bold uppercase tracking-wider text-brand-600">Tin tức cộng đồng</p>
+            <h1 class="mt-2 text-2xl font-extrabold text-slate-900 sm:text-3xl">Bản tin sức khỏe từ hệ thống</h1>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Tổng hợp tin mới nhất được đồng bộ từ news_articles. Bạn có thể lọc theo danh mục để theo dõi nội dung phù hợp.</p>
+            <p class="mt-4 inline-flex rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">{{ total_articles }} bài viết</p>
+
+            {% if categories %}
+                <div class="mt-5 flex flex-wrap gap-2">
+                    <a href="{% url 'news_list' %}" class="rounded-full border px-3 py-1.5 text-sm font-semibold {% if not selected_category %}border-brand-500 bg-brand-500 text-white{% else %}border-brand-200 bg-white text-brand-700 hover:bg-brand-50{% endif %}">Tất cả</a>
+                    {% for cat in categories %}
+                        <a href="{% url 'news_list' %}?category={{ cat.key }}" class="rounded-full border px-3 py-1.5 text-sm font-semibold {% if selected_category == cat.key %}border-brand-500 bg-brand-500 text-white{% else %}border-brand-200 bg-white text-brand-700 hover:bg-brand-50{% endif %}">{{ cat.label }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="mt-8">
+            {% if articles %}
+                <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    {% for article in articles %}
+                        <article class="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-card transition hover:-translate-y-1">
+                            <div class="h-44 w-full bg-brand-100">
+                                {% if article.image_url %}
+                                    <img src="{{ article.image_url }}" alt="{{ article.title }}" class="h-full w-full object-cover">
+                                {% else %}
+                                    <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-100 to-slate-100 text-brand-700">
+                                        <span class="material-symbols-outlined text-4xl">newspaper</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="p-5">
+                                <p class="mb-2 inline-flex rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">{{ article.category_display_name|default:'Tin tức' }}</p>
+                                <h2 class="line-clamp-2 text-lg font-bold text-slate-900">{{ article.title }}</h2>
+                                <p class="mt-2 line-clamp-4 text-sm leading-6 text-slate-600">{{ article.summary|default:article.content_preview }}</p>
+                                <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
+                                    <span class="inline-flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-base">schedule</span>
+                                        {{ article.updated_label|default:'Mới cập nhật' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="rounded-2xl border border-dashed border-brand-200 bg-white p-8 text-center">
+                    <p class="text-sm font-semibold text-slate-700">Không có bài viết nào trong danh mục đã chọn.</p>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

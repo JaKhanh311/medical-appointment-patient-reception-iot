@@ -1,0 +1,318 @@
+{% extends "doctors/admin_base.html" %}
+
+{% block title %}OPDFlow – Xuất dữ liệu FHIR R4{% endblock %}
+{% block page_title %}Xuất dữ liệu FHIR R4{% endblock %}
+
+{% block extra_style %}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { animation: spin 1s linear infinite; }
+@keyframes pulse-glow { 0%,100% { box-shadow: 0 8px 24px rgba(0,104,95,.20); } 50% { box-shadow: 0 8px 24px rgba(0,104,95,.20), 0 0 0 6px rgba(0,104,95,0.06); } }
+.pulse-glow { animation: pulse-glow 2.5s ease-in-out infinite; }
+.preview-box { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; }
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-in">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+            <h2 class="font-display text-2xl font-bold text-surface-900 flex items-center gap-3">
+                <span class="material-symbols-outlined text-brand-500 text-[28px]">cloud_download</span>
+                Xuất dữ liệu HL7 FHIR R4
+            </h2>
+            <p class="text-sm text-slate-500 mt-1">Ánh xạ toàn bộ cơ sở dữ liệu Firebase sang chuẩn HL7 FHIR Release 4 (R4) để trao đổi dữ liệu y tế liên thông.</p>
+        </div>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-[11px] font-bold text-amber-700">
+            <span class="material-symbols-outlined text-[14px]">verified</span>HL7 FHIR R4 Compliant
+        </span>
+    </div>
+
+    <!-- Data Mapping Card -->
+    <div class="glass-card p-6">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[16px] text-brand-500">schema</span>Ánh xạ dữ liệu (Data Mapping)
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+            <div class="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Hospitals</div>
+                <div class="text-xs font-medium text-surface-900">→ Organization</div>
+            </div>
+            <div class="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Specialties</div>
+                <div class="text-xs font-medium text-surface-900">→ HealthcareService</div>
+            </div>
+            <div class="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Doctors</div>
+                <div class="text-xs font-medium text-surface-900">→ Practitioner</div>
+            </div>
+            <div class="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Patients</div>
+                <div class="text-xs font-medium text-surface-900">→ Patient</div>
+            </div>
+            <div class="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Appointments</div>
+                <div class="text-xs font-medium text-surface-900">→ Appointment</div>
+            </div>
+            <div class="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Records</div>
+                <div class="text-xs font-medium text-surface-900">→ Encounter</div>
+            </div>
+        </div>
+        <p class="text-[11px] text-slate-400">Sử dụng SNOMED CT, LOINC, và các hệ thống mã hóa chuẩn quốc tế. Dữ liệu xuất ra dạng FHIR Bundle (collection).</p>
+    </div>
+
+    <!-- Data Summary -->
+    <div class="glass-card p-6" id="summary-card">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px] text-brand-500">database</span>Tổng quan dữ liệu nguồn
+            </h3>
+            <button onclick="loadSummary()" id="btn-refresh-summary" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 hover:border-brand-500 hover:text-brand-500 transition-all">
+                <span class="material-symbols-outlined text-[14px]">refresh</span>Tải lại
+            </button>
+        </div>
+        <div id="summary-loading" style="display:none" class="text-center py-8">
+            <span class="material-symbols-outlined spinner text-[32px] text-brand-500">progress_activity</span>
+            <p class="text-xs text-slate-400 mt-2">Đang tải thông tin từ Firebase...</p>
+        </div>
+        <div id="summary-content" style="display:none">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="summary-stats"></div>
+        </div>
+        <div id="summary-placeholder" class="text-center py-8 text-slate-400">
+            <span class="material-symbols-outlined text-[24px] block mb-2">info</span>
+            <span class="text-xs">Nhấn "Tải lại" để xem tổng quan dữ liệu trước khi xuất.</span>
+        </div>
+    </div>
+
+    <!-- Export Actions -->
+    <div class="glass-card p-6">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[16px] text-brand-500">download</span>Thực hiện xuất dữ liệu
+        </h3>
+        <div class="flex gap-3 flex-wrap mb-5">
+            <button onclick="executeExport('preview')" id="btn-preview" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-500 hover:text-brand-500 transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                <span class="material-symbols-outlined text-[18px]">visibility</span>Xem trước (Preview)
+            </button>
+            <button onclick="executeExport('download')" id="btn-download" class="pulse-glow inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl text-sm font-semibold shadow-brand hover:shadow-brand-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                <span class="material-symbols-outlined text-[18px]">cloud_download</span>Tải xuống FHIR Bundle (JSON)
+            </button>
+        </div>
+
+        <!-- Progress -->
+        <div id="export-progress" style="display:none" class="mb-5">
+            <div class="flex items-center gap-2.5 mb-2">
+                <span class="material-symbols-outlined spinner text-[18px] text-brand-500">progress_activity</span>
+                <span class="text-sm font-medium text-surface-900" id="export-status-text">Đang xử lý...</span>
+            </div>
+            <div class="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-brand-500 to-brand-400 rounded-full transition-all duration-500" id="export-progress-bar" style="width:0%"></div>
+            </div>
+        </div>
+
+        <!-- Result -->
+        <div id="export-result" style="display:none" class="rounded-xl bg-emerald-50 border border-emerald-200 p-4 mb-5">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="material-symbols-outlined text-[18px] text-emerald-600">check_circle</span>
+                <span class="text-sm font-semibold text-emerald-700">Xuất dữ liệu thành công!</span>
+            </div>
+            <div class="flex flex-wrap gap-2" id="export-result-stats"></div>
+        </div>
+
+        <!-- Error -->
+        <div id="export-error" style="display:none" class="rounded-xl bg-red-50 border border-red-200 p-4">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px] text-red-600">error</span>
+                <span class="text-sm font-semibold text-red-700" id="export-error-text">Lỗi</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="glass-card p-6" id="preview-card" style="display:none">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[16px] text-brand-500">code</span>Xem trước FHIR Bundle (10 resources đầu tiên)
+        </h3>
+        <div class="preview-box bg-surface-900 rounded-xl p-4 max-h-[400px] overflow-y-auto text-xs leading-relaxed text-slate-300" id="preview-content"></div>
+    </div>
+
+    <!-- FHIR Info -->
+    <div class="glass-card p-6">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-[16px] text-brand-500">menu_book</span>Thông tin chuẩn HL7 FHIR R4
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+                <h4 class="text-xs font-bold text-surface-900 mb-2">Hệ thống mã hóa sử dụng</h4>
+                <ul class="space-y-1.5 text-xs text-slate-600">
+                    <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span><strong>SNOMED CT</strong> – Mã chuyên khoa y tế</li>
+                    <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span><strong>LOINC</strong> – Mã xét nghiệm & quan sát lâm sàng</li>
+                    <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span><strong>HL7 Terminology</strong> – Phân loại trạng thái</li>
+                    <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span><strong>UCUM</strong> – Đơn vị đo lường y tế</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-surface-900 mb-2">Tài nguyên FHIR được tạo</h4>
+                <ul class="space-y-1.5 text-xs text-slate-600">
+                    <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Organization, HealthcareService</li>
+                    <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Practitioner, PractitionerRole</li>
+                    <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Patient, Observation, AllergyIntolerance</li>
+                    <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Appointment, Encounter, Condition</li>
+                    <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>MedicationRequest</li>
+                </ul>
+            </div>
+        </div>
+        <div class="mt-4 pt-4 border-t border-slate-100">
+            <p class="text-[11px] text-slate-400">Phiên bản: FHIR R4 (4.0.1) | Base URL: https://doctorportal.vn/fhir/ | Timezone: Asia/Ho_Chi_Minh (GMT+7)</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const csrfToken = '{{ csrf_token }}';
+
+function setButtonLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.disabled = loading;
+}
+
+async function loadSummary() {
+    const loading = document.getElementById('summary-loading');
+    const content = document.getElementById('summary-content');
+    const placeholder = document.getElementById('summary-placeholder');
+
+    placeholder.style.display = 'none';
+    content.style.display = 'none';
+    loading.style.display = 'block';
+    setButtonLoading('btn-refresh-summary', true);
+
+    try {
+        const resp = await fetch('{% url "admin_fhir_export_summary" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+        const data = await resp.json();
+
+        if (data.success) {
+            const stats = data.summary;
+            const items = [
+                { label: 'Bệnh viện', value: stats.hospitals, icon: 'local_hospital' },
+                { label: 'Chuyên khoa', value: stats.specialties, icon: 'medical_services' },
+                { label: 'Bác sĩ', value: stats.doctors, icon: 'person' },
+                { label: 'Bệnh nhân', value: stats.patients, icon: 'group' },
+                { label: 'Hồ sơ SK', value: stats.health_info, icon: 'health_and_safety' },
+                { label: 'Lịch hẹn (cũ)', value: stats.appointments_old, icon: 'event' },
+                { label: 'Lịch hẹn (mới)', value: stats.appointments_new, icon: 'event_available' },
+                { label: 'Bệnh án', value: stats.medical_records, icon: 'description' },
+            ];
+            document.getElementById('summary-stats').innerHTML = items.map(s => `
+                <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-white to-emerald-50/30 p-3.5 text-center transition-all hover:-translate-y-0.5 hover:shadow-md">
+                    <span class="material-symbols-outlined text-[18px] text-brand-500 block mb-1">${s.icon}</span>
+                    <div class="font-display text-xl font-bold text-surface-900">${s.value}</div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">${s.label}</div>
+                </div>
+            `).join('');
+            content.style.display = 'block';
+        } else {
+            placeholder.textContent = 'Lỗi: ' + (data.error || 'Không thể tải');
+            placeholder.style.display = 'block';
+        }
+    } catch (err) {
+        placeholder.textContent = 'Lỗi kết nối: ' + err.message;
+        placeholder.style.display = 'block';
+    } finally {
+        loading.style.display = 'none';
+        setButtonLoading('btn-refresh-summary', false);
+    }
+}
+
+async function executeExport(format) {
+    const progressEl = document.getElementById('export-progress');
+    const progressBar = document.getElementById('export-progress-bar');
+    const statusText = document.getElementById('export-status-text');
+    const resultEl = document.getElementById('export-result');
+    const errorEl = document.getElementById('export-error');
+    const previewCard = document.getElementById('preview-card');
+
+    resultEl.style.display = 'none';
+    errorEl.style.display = 'none';
+    previewCard.style.display = 'none';
+    progressEl.style.display = 'block';
+    progressBar.style.width = '10%';
+    statusText.textContent = 'Đang kết nối Firebase và tải dữ liệu...';
+    setButtonLoading('btn-preview', true);
+    setButtonLoading('btn-download', true);
+
+    let progress = 10;
+    const interval = setInterval(() => {
+        progress = Math.min(progress + Math.random() * 15, 85);
+        progressBar.style.width = progress + '%';
+        if (progress > 30 && progress < 60) statusText.textContent = 'Đang ánh xạ dữ liệu sang FHIR R4...';
+        else if (progress >= 60) statusText.textContent = 'Đang tạo FHIR Bundle...';
+    }, 500);
+
+    try {
+        const formData = new URLSearchParams();
+        formData.append('format', format);
+        const resp = await fetch('{% url "admin_fhir_export_execute" %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString(),
+        });
+
+        clearInterval(interval);
+        progressBar.style.width = '100%';
+        statusText.textContent = 'Hoàn tất!';
+
+        if (format === 'download' && resp.ok && resp.headers.get('content-type')?.includes('fhir+json')) {
+            const blob = await resp.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const disposition = resp.headers.get('content-disposition') || '';
+            const match = disposition.match(/filename="(.+?)"/);
+            a.download = match ? match[1] : 'fhir_r4_export.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            resultEl.style.display = 'block';
+            document.getElementById('export-result-stats').innerHTML = `
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-emerald-200 rounded-lg text-xs font-medium text-emerald-700">
+                    <span class="material-symbols-outlined text-[13px]">check</span>File đã được tải xuống
+                </span>`;
+        } else {
+            const data = await resp.json();
+            if (data.success) {
+                resultEl.style.display = 'block';
+                const counts = data.summary.resource_counts;
+                let html = `<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-700">Tổng: ${data.summary.total_resources} resources</span>`;
+                for (const [type, count] of Object.entries(counts).sort((a,b) => b[1]-a[1])) {
+                    html += `<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">${type}: <strong>${count}</strong></span>`;
+                }
+                document.getElementById('export-result-stats').innerHTML = html;
+                if (data.preview) {
+                    previewCard.style.display = 'block';
+                    document.getElementById('preview-content').textContent = JSON.stringify(data.preview, null, 2);
+                }
+            } else {
+                errorEl.style.display = 'block';
+                document.getElementById('export-error-text').textContent = data.error || 'Lỗi không xác định';
+            }
+        }
+    } catch (err) {
+        clearInterval(interval);
+        errorEl.style.display = 'block';
+        document.getElementById('export-error-text').textContent = 'Lỗi kết nối: ' + err.message;
+    } finally {
+        setTimeout(() => { progressEl.style.display = 'none'; }, 1500);
+        setButtonLoading('btn-preview', false);
+        setButtonLoading('btn-download', false);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadSummary);
+</script>
+{% endblock %}

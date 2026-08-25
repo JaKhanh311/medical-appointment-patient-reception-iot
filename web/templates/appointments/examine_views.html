@@ -1,0 +1,441 @@
+﻿{% extends 'base.html' %}
+{% block title %}Khám bệnh – {{ patient.name }} – OPDFlow{% endblock %}
+
+{% block content %}
+<style>
+/* Card nổi khối — dùng cho mọi section */
+.card-elevated {
+    background: linear-gradient(180deg, #ffffff 0%, #fafdfc 100%);
+    border: 1px solid rgba(190, 201, 199, 0.45);
+    border-radius: 16px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 -1px 0 rgba(190, 201, 199, 0.35) inset,
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 8px 16px -4px rgba(15, 23, 42, 0.06),
+        0 16px 32px -12px rgba(0, 104, 95, 0.10);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+.card-elevated:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 -1px 0 rgba(190, 201, 199, 0.35) inset,
+        0 2px 4px rgba(15, 23, 42, 0.05),
+        0 12px 24px -4px rgba(15, 23, 42, 0.10),
+        0 24px 48px -12px rgba(0, 104, 95, 0.16);
+}
+
+/* Patient profile - hero card with stronger shadow */
+.profile-elevated {
+    background: linear-gradient(180deg, #ffffff 0%, #f5faf8 100%);
+    border: 1px solid rgba(190, 201, 199, 0.5);
+    border-radius: 20px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 1) inset,
+        0 -2px 0 rgba(190, 201, 199, 0.3) inset,
+        0 4px 8px -2px rgba(15, 23, 42, 0.05),
+        0 16px 32px -8px rgba(0, 104, 95, 0.12),
+        0 32px 64px -16px rgba(0, 104, 95, 0.08);
+}
+
+/* Vital stat card - distinct accent shadow */
+.vital-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fcfb 100%);
+    border: 1px solid rgba(190, 201, 199, 0.4);
+    border-radius: 14px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.95) inset,
+        0 -1px 0 rgba(190, 201, 199, 0.4) inset,
+        0 2px 4px rgba(15, 23, 42, 0.04),
+        0 6px 14px -2px rgba(15, 23, 42, 0.06);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+.vital-card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.95) inset,
+        0 -1px 0 rgba(190, 201, 199, 0.4) inset,
+        0 4px 8px rgba(15, 23, 42, 0.06),
+        0 14px 28px -4px rgba(0, 104, 95, 0.16);
+}
+
+/* Inset textarea container — nổi xuống tạo cảm giác lõm */
+.inset-pad {
+    background: linear-gradient(180deg, #f0f5f3 0%, #f7faf9 100%);
+    border: 1px solid rgba(190, 201, 199, 0.55);
+    border-radius: 12px;
+    box-shadow:
+        inset 0 2px 6px rgba(15, 23, 42, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+.inset-pad:focus-within {
+    border-color: #00685f;
+    box-shadow:
+        inset 0 2px 6px rgba(15, 23, 42, 0.07),
+        0 0 0 3px rgba(0, 104, 95, 0.12),
+        0 4px 12px rgba(0, 104, 95, 0.08);
+}
+
+/* Input nổi khối nhẹ trong bảng đơn thuốc */
+.med-input {
+    background: #ffffff;
+    border: 1px solid rgba(190, 201, 199, 0.55);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #171d1c;
+    width: 100%;
+    box-shadow:
+        inset 0 1px 2px rgba(15, 23, 42, 0.04),
+        0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: all .15s ease;
+}
+.med-input:hover { border-color: #6f7977; }
+.med-input:focus {
+    outline: none;
+    border-color: #00685f;
+    box-shadow:
+        inset 0 1px 2px rgba(15, 23, 42, 0.04),
+        0 0 0 3px rgba(0, 104, 95, 0.12);
+}
+
+/* Avatar 3D */
+.avatar-3d {
+    background: linear-gradient(135deg, #008378 0%, #00685f 100%);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.25) inset,
+        0 -2px 0 rgba(0, 0, 0, 0.12) inset,
+        0 4px 12px rgba(0, 104, 95, 0.30),
+        0 2px 4px rgba(0, 104, 95, 0.20);
+}
+
+/* Button nổi khối */
+.btn-3d-primary {
+    background: linear-gradient(180deg, #008378 0%, #00685f 100%);
+    color: #fff;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.25) inset,
+        0 -2px 0 rgba(0, 0, 0, 0.12) inset,
+        0 6px 16px rgba(0, 104, 95, 0.32),
+        0 2px 4px rgba(0, 104, 95, 0.18);
+    transition: all .15s ease;
+}
+.btn-3d-primary:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(180deg, #00958a 0%, #00756c 100%);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.3) inset,
+        0 -2px 0 rgba(0, 0, 0, 0.12) inset,
+        0 8px 20px rgba(0, 104, 95, 0.38),
+        0 3px 6px rgba(0, 104, 95, 0.22);
+}
+.btn-3d-primary:active {
+    transform: translateY(1px);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.2) inset,
+        0 -1px 0 rgba(0, 0, 0, 0.15) inset,
+        0 2px 4px rgba(0, 104, 95, 0.20);
+}
+
+.btn-3d-soft {
+    background: linear-gradient(180deg, #ffffff 0%, #f0f5f3 100%);
+    color: #171d1c;
+    border: 1px solid rgba(190, 201, 199, 0.6);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 -1px 0 rgba(190, 201, 199, 0.4) inset,
+        0 2px 4px rgba(15, 23, 42, 0.04),
+        0 4px 10px rgba(15, 23, 42, 0.06);
+    transition: all .15s ease;
+}
+.btn-3d-soft:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 -1px 0 rgba(190, 201, 199, 0.4) inset,
+        0 4px 8px rgba(15, 23, 42, 0.06),
+        0 8px 16px rgba(15, 23, 42, 0.10);
+}
+
+/* Add medicine button - small soft 3D */
+.btn-add-med {
+    background: linear-gradient(180deg, rgba(0, 131, 120, 0.16) 0%, rgba(0, 104, 95, 0.20) 100%);
+    color: #00685f;
+    border: 1px solid rgba(0, 104, 95, 0.20);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 1px 2px rgba(0, 104, 95, 0.10);
+    transition: all .15s ease;
+}
+.btn-add-med:hover {
+    background: linear-gradient(180deg, rgba(0, 131, 120, 0.24) 0%, rgba(0, 104, 95, 0.30) 100%);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 2px 6px rgba(0, 104, 95, 0.18);
+}
+</style>
+
+<!-- Header -->
+<div class="mb-gutter">
+    <div class="flex items-center gap-2 text-outline font-label-sm text-label-sm mb-2 uppercase tracking-widest">
+        <a href="{% url 'dashboard' %}" class="hover:text-primary flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-[14px]">arrow_back</span>
+            Quay lại Dashboard
+        </a>
+    </div>
+    <h2 class="font-h1 text-h1 text-on-surface">Khám bệnh</h2>
+</div>
+
+<!-- Patient profile card -->
+<section class="profile-elevated flex flex-col sm:flex-row sm:items-center justify-between p-lg mb-gutter gap-4">
+    <div class="flex items-center gap-lg">
+        <div class="avatar-3d w-16 h-16 rounded-full flex items-center justify-center text-white font-h2 text-h2 shrink-0">
+            {{ patient.name|slice:":1"|upper }}
+        </div>
+        <div>
+            <div class="flex items-center gap-3 mb-1">
+                <h2 class="font-h2 text-h2 text-on-surface">{{ patient.name }}</h2>
+                <span class="px-3 py-1 bg-secondary-container/20 text-on-secondary-container font-label-sm text-label-sm rounded-full border border-secondary-container/30 uppercase tracking-wider">Đang khám</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-4 text-on-surface-variant font-body-md text-body-md">
+                {% if patient.age %}<div class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] opacity-70">cake</span> {{ patient.age }} tuổi{% if patient.birthdate %} ({{ patient.birthdate }}){% endif %}</div>{% endif %}
+                {% if patient.gender %}<div class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] opacity-70">person</span> {{ patient.gender }}</div>{% endif %}
+                {% if patient.phone %}<div class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] opacity-70">phone</span> {{ patient.phone }}</div>{% endif %}
+            </div>
+            {% if patient.address %}<p class="font-body-md text-body-md text-outline mt-1">{{ patient.address }}</p>{% endif %}
+            {% if patient.medical_history %}<p class="font-body-md text-body-md text-on-surface-variant mt-1"><span class="font-semibold">Tiền sử:</span> {{ patient.medical_history }}</p>{% endif %}
+        </div>
+    </div>
+    <div class="shrink-0 text-right">
+
+    <div class="font-label-sm text-label-sm text-outline uppercase mb-1">Giờ khám</div>
+    <div class="font-data-mono text-data-mono text-on-surface" id="live-clock"></div>
+
+</div>
+</section>
+
+<!-- Previous medical records — loaded asynchronously after page render -->
+<div id="medical-records-section" class="mb-gutter">
+    <!-- Skeleton shown while loading -->
+    <section id="medical-records-skeleton" class="card-elevated p-lg animate-pulse">
+        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-surface-variant">
+            <span class="material-symbols-outlined text-outline/40">history</span>
+            <div class="h-4 w-48 bg-surface-variant rounded"></div>
+        </div>
+        <div class="space-y-3">
+            <div class="h-3 w-full bg-surface-variant/60 rounded"></div>
+            <div class="h-3 w-5/6 bg-surface-variant/60 rounded"></div>
+        </div>
+    </section>
+</div>
+
+<script>
+(function () {
+    var ajaxUrl = "{% url 'examine_medical_records_ajax' appointment_id=patient.appointment_id %}";
+    var recordsUrl = "{% url 'patient_record' appointment_id=patient.appointment_id %}";
+
+    function buildSummaryHtml(data) {
+        if (!data || !data.count) return '';
+        var meta = '';
+        if (data.latest_date) {
+            meta = '<span class="font-data-mono text-data-mono text-outline">'
+                 + 'Lần khám gần nhất: ' + data.latest_date
+                 + (data.latest_time ? ' · ' + data.latest_time : '')
+                 + '</span>';
+        }
+        return '<section class="bg-surface-container-lowest/80 backdrop-blur-xl border border-white/50 rounded-xl p-lg shadow-sm">'
+            + '<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">'
+            +   '<div class="flex items-start gap-3">'
+            +     '<span class="material-symbols-outlined text-primary mt-0.5">history</span>'
+            +     '<div>'
+            +       '<h2 class="font-h3 text-h3 text-on-surface mb-1">Bệnh nhân đã có hồ sơ trước đó</h2>'
+            +       '<p class="font-body-md text-body-md text-outline">'
+            +         data.count + ' lần khám đã được lưu.' + (meta ? ' ' + meta : '')
+            +       '</p>'
+            +     '</div>'
+            +   '</div>'
+            +   '<a href="' + recordsUrl + '" target="_blank" rel="noopener" '
+            +      'class="row-action-btn inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-semibold text-sm shadow-sm hover:bg-primary-container transition-colors whitespace-nowrap">'
+            +     '<span class="material-symbols-outlined text-[18px]">folder_open</span>'
+            +     'Xem hồ sơ khám'
+            +   '</a>'
+            + '</div></section>';
+    }
+
+    fetch(ajaxUrl, { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            var section = document.getElementById('medical-records-section');
+            section.innerHTML = buildSummaryHtml(data); // empty string = section disappears if no records
+        })
+        .catch(function () {
+            document.getElementById('medical-records-section').innerHTML = '';
+        });
+})();
+</script>
+
+<!-- Examination form -->
+<form method="post">
+{% csrf_token %}
+
+<!-- Bento grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-gutter">
+    <!-- Vitals (span 3) -->
+    <section class="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="vital-card p-md relative overflow-hidden group">
+            <div class="flex items-center gap-2 mb-3 text-on-surface-variant">
+                <span class="material-symbols-outlined text-tertiary-container text-[20px]">favorite</span>
+                <h3 class="font-label-sm text-label-sm uppercase tracking-wider">Huyết áp</h3>
+            </div>
+            <input type="text" name="blood_pressure" class="w-full bg-transparent border-none p-0 font-data-mono text-[28px] font-bold text-on-surface focus:outline-none placeholder:text-outline/40" placeholder="120/80">
+            <div class="mt-1 font-label-sm text-label-sm text-outline">mmHg</div>
+        </div>
+        <div class="vital-card p-md relative overflow-hidden group">
+            <div class="flex items-center gap-2 mb-3 text-on-surface-variant">
+                <span class="material-symbols-outlined text-secondary text-[20px]">monitor_heart</span>
+                <h3 class="font-label-sm text-label-sm uppercase tracking-wider">Mạch</h3>
+            </div>
+            <input type="number" name="pulse" class="w-full bg-transparent border-none p-0 font-data-mono text-[28px] font-bold text-on-surface focus:outline-none placeholder:text-outline/40" placeholder="80">
+            <div class="mt-1 font-label-sm text-label-sm text-outline">lần/phút</div>
+        </div>
+        <div class="vital-card p-md relative overflow-hidden group">
+            <div class="flex items-center gap-2 mb-3 text-on-surface-variant">
+                <span class="material-symbols-outlined text-error text-[20px]">thermostat</span>
+                <h3 class="font-label-sm text-label-sm uppercase tracking-wider">Nhiệt độ</h3>
+            </div>
+            <input type="number" step="0.1" name="temperature" class="w-full bg-transparent border-none p-0 font-data-mono text-[28px] font-bold text-on-surface focus:outline-none placeholder:text-outline/40" placeholder="36.5">
+            <div class="mt-1 font-label-sm text-label-sm text-outline">°C</div>
+        </div>
+        <div class="vital-card p-md relative overflow-hidden group">
+            <div class="flex items-center gap-2 mb-3 text-on-surface-variant">
+                <span class="material-symbols-outlined text-primary text-[20px]">weight</span>
+                <h3 class="font-label-sm text-label-sm uppercase tracking-wider">Cân nặng</h3>
+            </div>
+            <input type="number" step="0.1" name="weight" class="w-full bg-transparent border-none p-0 font-data-mono text-[28px] font-bold text-on-surface focus:outline-none placeholder:text-outline/40" placeholder="70">
+            <div class="mt-1 font-label-sm text-label-sm text-outline">kg</div>
+        </div>
+    </section>
+
+    <!-- Symptoms (span 1) -->
+    <section class="card-elevated lg:col-span-1 p-lg flex flex-col" style="min-height:220px;">
+        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-surface-variant">
+            <span class="material-symbols-outlined text-primary">sick</span>
+            <h2 class="font-h3 text-h3 text-on-surface">Triệu chứng</h2>
+        </div>
+        <div class="inset-pad flex-1">
+            <textarea name="symptom" rows="6" class="w-full h-full bg-transparent border-none resize-none focus:ring-0 p-4 font-body-lg text-body-lg text-on-surface placeholder:text-outline/50"
+                      placeholder="Nhập triệu chứng bệnh nhân...">{{ patient.current_symptoms|default:"" }}</textarea>
+        </div>
+    </section>
+
+    <!-- Diagnosis (span 2) -->
+    <section class="card-elevated lg:col-span-2 p-lg flex flex-col" style="min-height:220px;">
+        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-surface-variant">
+            <span class="material-symbols-outlined text-primary">stethoscope</span>
+            <h2 class="font-h3 text-h3 text-on-surface">Chẩn đoán</h2>
+        </div>
+        <div class="inset-pad flex-1">
+            <textarea name="diagnosis" rows="6" class="w-full h-full bg-transparent border-none resize-none focus:ring-0 p-4 font-body-lg text-body-lg text-on-surface placeholder:text-outline/50"
+                      placeholder="Nhập chẩn đoán...">{{ patient.current_diagnosis|default:"" }}</textarea>
+        </div>
+    </section>
+</div>
+
+<!-- Prescriptions -->
+<section class="card-elevated p-lg mb-gutter">
+    <div class="flex items-center justify-between mb-4 pb-3 border-b border-surface-variant">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">medication</span>
+            <h2 class="font-h3 text-h3 text-on-surface">Đơn thuốc</h2>
+        </div>
+        <button type="button" onclick="addMedicineRow()"
+                class="btn-add-med inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-data-mono text-data-mono">
+            <span class="material-symbols-outlined text-[16px]">add</span> Thêm thuốc
+        </button>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse" id="medicineTable">
+            <thead>
+                <tr class="font-label-sm text-label-sm text-outline border-b border-surface-variant uppercase tracking-wider">
+                    <th class="pb-3 pl-2 font-medium">Tên thuốc</th>
+                    <th class="pb-3 font-medium">Liều dùng</th>
+                    <th class="pb-3 font-medium">Số lượng</th>
+                    <th class="pb-3 font-medium">Ghi chú</th>
+                    <th class="pb-3 font-medium w-16">Xóa</th>
+                </tr>
+            </thead>
+            <tbody class="font-body-md text-body-md text-on-surface">
+                <tr class="border-b border-surface-variant/50">
+                    <td class="py-3 pl-2"><input class="med-input" name="med_name[]" placeholder="VD: Paracetamol"></td>
+                    <td class="py-3 pr-2"><input class="med-input" name="med_dose[]" placeholder="2 viên/ngày"></td>
+                    <td class="py-3 pr-2"><input class="med-input" name="med_qty[]" type="number" placeholder="10"></td>
+                    <td class="py-3 pr-2"><input class="med-input" name="med_note[]" placeholder="Sau ăn"></td>
+                    <td class="py-3 text-center"><button type="button" onclick="removeRow(this)" class="w-8 h-8 rounded-full text-outline hover:text-error hover:bg-error-container/30 flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[18px]">delete</span></button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Advice -->
+<section class="card-elevated p-lg mb-gutter">
+    <div class="flex items-center gap-2 mb-4 pb-3 border-b border-surface-variant">
+        <span class="material-symbols-outlined text-primary">chat_bubble</span>
+        <h2 class="font-h3 text-h3 text-on-surface">Lời dặn & hướng dẫn</h2>
+    </div>
+    <div class="inset-pad">
+        <textarea name="advice" rows="3" class="w-full bg-transparent border-none resize-none focus:ring-0 p-4 font-body-lg text-body-lg text-on-surface placeholder:text-outline/50"
+                  placeholder="VD: Uống thuốc đúng giờ, tái khám sau 7 ngày...">{{ patient.current_advice|default:"" }}</textarea>
+    </div>
+</section>
+
+<!-- Action buttons -->
+<div class="flex justify-end gap-3">
+    <button type="submit" name="action" value="save"
+            class="btn-3d-soft px-6 py-3 rounded-lg font-data-mono text-data-mono flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">save</span> Lưu tạm
+    </button>
+    <button type="submit" name="action" value="finish"
+            class="btn-3d-primary px-6 py-3 rounded-lg font-data-mono text-data-mono flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">check_circle</span> Hoàn tất khám
+    </button>
+</div>
+
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addMedicineRow() {
+    const tbody = document.querySelector("#medicineTable tbody");
+    const tr = document.createElement("tr");
+    tr.className = "border-b border-surface-variant/50";
+    tr.innerHTML = `
+        <td class="py-3 pl-2"><input class="med-input" name="med_name[]" placeholder="VD: Paracetamol"></td>
+        <td class="py-3 pr-2"><input class="med-input" name="med_dose[]" placeholder="2 viên/ngày"></td>
+        <td class="py-3 pr-2"><input class="med-input" name="med_qty[]" type="number" placeholder="10"></td>
+        <td class="py-3 pr-2"><input class="med-input" name="med_note[]" placeholder="Sau ăn"></td>
+        <td class="py-3 text-center"><button type="button" onclick="removeRow(this)" class="w-8 h-8 rounded-full text-outline hover:text-error hover:bg-error-container/30 flex items-center justify-center transition-colors"><span class="material-symbols-outlined text-[18px]">delete</span></button></td>
+    `;
+    tbody.appendChild(tr);
+}
+function removeRow(btn) { btn.closest("tr").remove(); }
+
+// Live client clock
+(function() {
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function tick() {
+        var now = new Date();
+        var time = pad(now.getHours()) + ':' + pad(now.getMinutes());
+        var date = pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear();
+        var el = document.getElementById('live-clock');
+        if (el) el.textContent = time + ' - ' + date;
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
+{% endblock %}

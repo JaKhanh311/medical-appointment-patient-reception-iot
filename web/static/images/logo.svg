@@ -1,0 +1,205 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 510" width="400" height="510">
+  <defs>
+    <!-- Strong diagonal gradient: bright teal → very dark teal -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#1AADA3"/>
+      <stop offset="40%"  stop-color="#0F766E"/>
+      <stop offset="100%" stop-color="#063D38"/>
+    </linearGradient>
+
+    <!-- Inner QR fill: slightly lighter than bg so markers pop -->
+    <linearGradient id="qrFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#0F766E"/>
+      <stop offset="100%" stop-color="#063D38"/>
+    </linearGradient>
+
+    <!-- Heart: vivid red top → deep crimson bottom -->
+    <linearGradient id="heartGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FF8A80"/>
+      <stop offset="45%"  stop-color="#F44336"/>
+      <stop offset="100%" stop-color="#B71C1C"/>
+    </linearGradient>
+
+    <!-- Shine overlay on heart (radial) -->
+    <radialGradient id="heartShine" cx="38%" cy="30%" r="55%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Top-left corner light bloom on icon bg -->
+    <radialGradient id="bgBloom" cx="15%" cy="12%" r="55%">
+      <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Wordmark gradient: teal to darker teal -->
+    <linearGradient id="textGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#0F766E"/>
+      <stop offset="100%" stop-color="#063D38"/>
+    </linearGradient>
+
+    <!-- Gold gradient for "QR" -->
+    <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#F0C060"/>
+      <stop offset="100%" stop-color="#A07030"/>
+    </linearGradient>
+
+    <!-- Drop shadow -->
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="14"
+                    flood-color="#063D38" flood-opacity="0.40"/>
+    </filter>
+
+    <!-- Glow filter for ECG line -->
+    <filter id="ecgGlow" x="-20%" y="-60%" width="140%" height="220%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  ICON BACKGROUND                            -->
+  <!-- ═══════════════════════════════════════════ -->
+  <rect x="20" y="15" width="360" height="360" rx="55"
+        fill="url(#bgGrad)" filter="url(#shadow)"/>
+
+  <!-- Light bloom top-left -->
+  <rect x="20" y="15" width="360" height="360" rx="55"
+        fill="url(#bgBloom)"/>
+
+  <!-- Subtle inner border highlight -->
+  <rect x="22" y="17" width="356" height="356" rx="54"
+        fill="none" stroke="white" stroke-opacity="0.12" stroke-width="2"/>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  QR CORNER MARKERS                          -->
+  <!-- ═══════════════════════════════════════════ -->
+
+  <!-- Top-Left -->
+  <rect x="52"  y="47"  width="90" height="90" rx="12" fill="white"/>
+  <rect x="64"  y="59"  width="66" height="66" rx="8"  fill="url(#qrFill)"/>
+  <rect x="76"  y="71"  width="42" height="42" rx="5"  fill="white"/>
+
+  <!-- Top-Right -->
+  <rect x="258" y="47"  width="90" height="90" rx="12" fill="white"/>
+  <rect x="270" y="59"  width="66" height="66" rx="8"  fill="url(#qrFill)"/>
+  <rect x="282" y="71"  width="42" height="42" rx="5"  fill="white"/>
+
+  <!-- Bottom-Left -->
+  <rect x="52"  y="253" width="90" height="90" rx="12" fill="white"/>
+  <rect x="64"  y="265" width="66" height="66" rx="8"  fill="url(#qrFill)"/>
+  <rect x="76"  y="277" width="42" height="42" rx="5"  fill="white"/>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  QR DATA PIXELS                             -->
+  <!-- ═══════════════════════════════════════════ -->
+
+  <!-- Top-middle strip -->
+  <g fill="white" opacity="0.80">
+    <rect x="164" y="47"  width="16" height="16" rx="3"/>
+    <rect x="188" y="47"  width="16" height="16" rx="3"/>
+    <rect x="212" y="47"  width="16" height="16" rx="3"/>
+    <rect x="164" y="71"  width="16" height="16" rx="3"/>
+    <rect x="212" y="71"  width="16" height="16" rx="3"/>
+    <rect x="164" y="95"  width="16" height="16" rx="3"/>
+    <rect x="188" y="95"  width="16" height="16" rx="3"/>
+    <rect x="212" y="119" width="16" height="16" rx="3"/>
+    <rect x="188" y="119" width="16" height="16" rx="3"/>
+  </g>
+
+  <!-- Left-middle strip -->
+  <g fill="white" opacity="0.80">
+    <rect x="52"  y="159" width="16" height="16" rx="3"/>
+    <rect x="76"  y="159" width="16" height="16" rx="3"/>
+    <rect x="100" y="159" width="16" height="16" rx="3"/>
+    <rect x="52"  y="183" width="16" height="16" rx="3"/>
+    <rect x="100" y="183" width="16" height="16" rx="3"/>
+    <rect x="52"  y="207" width="16" height="16" rx="3"/>
+    <rect x="76"  y="207" width="16" height="16" rx="3"/>
+    <rect x="76"  y="231" width="16" height="16" rx="3"/>
+    <rect x="100" y="231" width="16" height="16" rx="3"/>
+  </g>
+
+  <!-- Bottom-right block -->
+  <g fill="white" opacity="0.80">
+    <rect x="260" y="255" width="16" height="16" rx="3"/>
+    <rect x="284" y="255" width="16" height="16" rx="3"/>
+    <rect x="308" y="255" width="16" height="16" rx="3"/>
+    <rect x="260" y="279" width="16" height="16" rx="3"/>
+    <rect x="308" y="279" width="16" height="16" rx="3"/>
+    <rect x="260" y="303" width="16" height="16" rx="3"/>
+    <rect x="284" y="303" width="16" height="16" rx="3"/>
+    <rect x="308" y="303" width="16" height="16" rx="3"/>
+    <rect x="284" y="327" width="16" height="16" rx="3"/>
+    <rect x="308" y="327" width="16" height="16" rx="3"/>
+    <rect x="260" y="327" width="16" height="16" rx="3"/>
+  </g>
+
+  <!-- Right-edge extras -->
+  <g fill="white" opacity="0.50">
+    <rect x="332" y="159" width="16" height="16" rx="3"/>
+    <rect x="332" y="207" width="16" height="16" rx="3"/>
+    <rect x="332" y="231" width="16" height="16" rx="3"/>
+    <rect x="332" y="255" width="16" height="16" rx="3"/>
+  </g>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  HEART  centered at (200, 200)              -->
+  <!-- ═══════════════════════════════════════════ -->
+  <path d="M 200 170
+           C 200 155, 180 140, 163 140
+           C 138 140, 128 163, 128 183
+           C 128 216, 162 241, 200 261
+           C 238 241, 272 216, 272 183
+           C 272 163, 262 140, 237 140
+           C 220 140, 200 155, 200 170 Z"
+        fill="url(#heartGrad)"/>
+
+  <!-- Shine overlay -->
+  <path d="M 200 170
+           C 200 155, 180 140, 163 140
+           C 138 140, 128 163, 128 183
+           C 128 216, 162 241, 200 261
+           C 238 241, 272 216, 272 183
+           C 272 163, 262 140, 237 140
+           C 220 140, 200 155, 200 170 Z"
+        fill="url(#heartShine)"/>
+
+  <!-- ECG line with glow -->
+  <polyline points="143,200  160,200  172,172  183,226  195,180  207,200  260,200"
+            stroke="white" stroke-width="3" fill="none" opacity="0.4"
+            stroke-linecap="round" stroke-linejoin="round"
+            filter="url(#ecgGlow)"/>
+  <polyline points="143,200  160,200  172,172  183,226  195,180  207,200  260,200"
+            stroke="white" stroke-width="5.5" fill="none"
+            stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--  WORDMARK                                   -->
+  <!-- ═══════════════════════════════════════════ -->
+
+  <!-- Shadow text layer -->
+  <text x="202" y="434"
+        font-family="'Arial Black', 'Arial Bold', Arial, Helvetica, sans-serif"
+        font-size="62" font-weight="900"
+        text-anchor="middle" letter-spacing="-1"
+        fill="#063D38" opacity="0.15">
+    OPDFlow
+  </text>
+
+  <!-- Main wordmark -->
+  <text x="200" y="432"
+        font-family="'Arial Black', 'Arial Bold', Arial, Helvetica, sans-serif"
+        font-size="62" font-weight="900"
+        text-anchor="middle" letter-spacing="-1">
+    <tspan fill="url(#textGrad)">OPD</tspan><tspan fill="url(#goldGrad)">Flow</tspan>
+  </text>
+
+  <!-- Tagline -->
+  <text x="200" y="470"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="15" font-weight="600"
+        letter-spacing="6"
+        text-anchor="middle"
+        fill="#0F766E" opacity="0.75">SMART HEALTHCARE</text>
+</svg>

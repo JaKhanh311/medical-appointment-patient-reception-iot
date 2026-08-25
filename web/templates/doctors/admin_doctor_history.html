@@ -1,0 +1,139 @@
+{% extends "doctors/admin_base.html" %}
+
+{% block title %}OPDFlow – Lịch sử khám{% endblock %}
+{% block page_title %}Lịch sử khám bệnh{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-in">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+            <h2 class="font-display text-2xl font-bold text-surface-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-brand-500 text-[24px]">history</span>
+                Lịch sử khám của bác sĩ
+            </h2>
+            <div class="flex items-center gap-2 mt-2">
+                <span class="font-mono text-xs text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded-lg">{{ doctor.id }}</span>
+                <span class="font-semibold text-sm text-surface-900">{{ doctor.name|default:'-' }}</span>
+            </div>
+            <p class="text-sm text-slate-500 mt-1">Theo dõi bác sĩ đã khám ai và vào ngày nào.</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'admin_doctor_edit' doctor.id %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-500 hover:text-brand-500 transition-all shadow-sm">
+                <span class="material-symbols-outlined text-[16px]">edit</span>Sửa bác sĩ
+            </a>
+            <a href="{% url 'admin_portal_dashboard' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200/80 rounded-xl text-sm font-medium text-slate-700 hover:border-brand-500 hover:text-brand-500 transition-all shadow-sm">
+                <span class="material-symbols-outlined text-[16px]">arrow_back</span>Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter + Stats Card -->
+    <div class="glass-card p-5">
+        <form method="get" class="flex items-end gap-3 flex-wrap mb-5">
+            <div class="flex-1 min-w-[140px]">
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Từ ngày</label>
+                <input type="date" name="date_from" value="{{ date_from }}" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+            </div>
+            <div class="flex-1 min-w-[140px]">
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Đến ngày</label>
+                <input type="date" name="date_to" value="{{ date_to }}" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all">
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl text-sm font-semibold shadow-brand hover:shadow-brand-lg transition-all">
+                    <span class="material-symbols-outlined text-[16px]">filter_list</span>Lọc
+                </button>
+                <a href="{% url 'admin_doctor_history' doctor.id %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-slate-300 transition-all">
+                    Xóa lọc
+                </a>
+            </div>
+        </form>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 text-center">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Tổng lượt khám</div>
+                <div class="font-display text-3xl font-bold text-surface-900">{{ history_stats.total_exams }}</div>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 text-center">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Số bệnh nhân</div>
+                <div class="font-display text-3xl font-bold text-surface-900">{{ history_stats.total_patients }}</div>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 text-center">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Số ngày có khám</div>
+                <div class="font-display text-3xl font-bold text-surface-900">{{ history_stats.total_days }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="glass-card overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100">
+            <h3 class="font-display font-bold text-surface-900 text-[15px]">Chi tiết bệnh nhân đã khám</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-slate-50/80">
+                        <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Ngày</th>
+                        <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Giờ</th>
+                        <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Bệnh nhân</th>
+                        <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Liên hệ</th>
+                        <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Chuẩn đoán</th>
+                        <th class="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">Mã lịch khám</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for row in exam_history %}
+                    <tr class="hover:bg-brand-50/30 transition-colors">
+                        <td class="px-5 py-3 text-sm text-slate-700">{{ row.date|default:'-' }}</td>
+                        <td class="px-5 py-3 text-sm text-slate-700">{{ row.time|default:'-' }}</td>
+                        <td class="px-5 py-3">
+                            <div class="font-semibold text-sm text-surface-900">{{ row.patient_name|default:'-' }}</div>
+                            <div class="text-xs text-slate-400 font-mono">{{ row.patient_id|default:'-' }}</div>
+                        </td>
+                        <td class="px-5 py-3 text-sm text-slate-600">{{ row.patient_phone|default:'-' }}</td>
+                        <td class="px-5 py-3 text-sm text-slate-700 max-w-[200px] truncate">{{ row.diagnosis|default:'Chưa cập nhật' }}</td>
+                        <td class="px-5 py-3"><span class="font-mono text-xs text-slate-400">{{ row.appointment_id|default:'-' }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-12 text-slate-400">
+                            <span class="material-symbols-outlined text-[32px] block mb-2">event_busy</span>
+                            <span class="text-sm">Không có dữ liệu khám phù hợp bộ lọc.</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex items-center justify-between px-4 py-3 border-t border-slate-200/60">
+            <div class="text-xs text-slate-500">
+                Trang {{ page_obj.number }} / {{ paginator.num_pages }} · Tổng {{ history_stats.total_exams }} lượt khám
+            </div>
+            <div class="flex items-center gap-1">
+                {% if page_obj.has_previous %}
+                <a href="?doctor_id={{ doctor.id }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ page_obj.previous_page_number }}"
+                   class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">← Trước</a>
+                {% endif %}
+                {% for num in paginator.page_range %}
+                    {% if num == page_obj.number %}
+                    <span class="px-3 py-1.5 text-xs rounded-lg bg-brand-500 text-white font-semibold">{{ num }}</span>
+                    {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                    <a href="?doctor_id={{ doctor.id }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ num }}"
+                       class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <a href="?doctor_id={{ doctor.id }}&date_from={{ date_from }}&date_to={{ date_to }}&page={{ page_obj.next_page_number }}"
+                   class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">Sau →</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

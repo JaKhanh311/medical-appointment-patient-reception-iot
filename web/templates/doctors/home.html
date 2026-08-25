@@ -1,0 +1,633 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPDFlow – Cổng Thông Tin Y Tế</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'images/logo_icon.svg' %}">
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@300..700,0..1&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef5ff', 100: '#d8e8ff', 200: '#b8d4ff',
+                            500: '#0057b7', 600: '#004a9c', 700: '#003b7d', 800: '#002a5c'
+                        },
+                        accent: {
+                            50: '#ecfdf5', 100: '#d1fae5', 500: '#108548', 600: '#0d6e3c'
+                        },
+                        slateink: '#0d1c2e'
+                    },
+                    boxShadow: {
+                        float: '0 10px 32px rgba(0, 87, 183, 0.14)',
+                        card: '0 4px 20px rgba(0, 87, 183, 0.08)',
+                        glow: '0 0 0 1px rgba(0, 87, 183, 0.10), 0 16px 40px rgba(0, 87, 183, 0.18)'
+                    },
+                    fontFamily: { sans: ['Public Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Hero background */
+        .hero-bg {
+            background:
+                radial-gradient(90% 70% at 85% 10%, rgba(16, 133, 72, 0.18), transparent 65%),
+                radial-gradient(85% 80% at 10% 15%, rgba(0, 87, 183, 0.20), transparent 60%),
+                linear-gradient(180deg, #f7fbff 0%, #eff4ff 100%);
+        }
+        .hero-blob {
+            position: absolute; border-radius: 9999px; filter: blur(2px);
+            opacity: 0.5; pointer-events: none; animation: drift 9s ease-in-out infinite;
+        }
+        .hero-blob.one {
+            width: 320px; height: 320px; top: -90px; left: -90px;
+            background: radial-gradient(circle at 30% 30%, rgba(0, 87, 183, 0.32), rgba(0, 87, 183, 0));
+        }
+        .hero-blob.two {
+            width: 380px; height: 380px; right: -130px; bottom: -130px;
+            background: radial-gradient(circle at 50% 50%, rgba(16, 133, 72, 0.28), rgba(16, 133, 72, 0));
+            animation-delay: 1.8s;
+        }
+        .hero-blob.three {
+            width: 220px; height: 220px; top: 30%; right: 20%;
+            background: radial-gradient(circle, rgba(0, 87, 183, 0.15), transparent);
+            animation-delay: 3s;
+        }
+
+        /* Panel lift */
+        .panel-lift {
+            border: 1px solid rgba(0, 87, 183, 0.18);
+            box-shadow: 0 12px 30px rgba(9, 34, 70, 0.10), 0 2px 6px rgba(9, 34, 70, 0.08);
+            transition: transform .35s cubic-bezier(.4,0,.2,1), box-shadow .35s ease, border-color .35s ease;
+        }
+        .panel-lift:hover {
+            transform: translateY(-6px);
+            border-color: rgba(0, 87, 183, 0.4);
+            box-shadow: 0 22px 44px rgba(9, 34, 70, 0.15), 0 4px 10px rgba(9, 34, 70, 0.10);
+        }
+
+        /* Soft grid */
+        .soft-grid {
+            background-image: linear-gradient(rgba(0, 87, 183, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 87, 183, 0.06) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+
+        /* Animations */
+        .fade-up { animation: fadeUp 0.7s ease-out both; }
+        .stagger-1 { animation-delay: .08s; }
+        .stagger-2 { animation-delay: .16s; }
+        .stagger-3 { animation-delay: .24s; }
+        .stagger-4 { animation-delay: .32s; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(22px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Pulse dot */
+        .pulse-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #108548; animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 133, 72, 0.5); }
+            50% { box-shadow: 0 0 0 8px rgba(16, 133, 72, 0); }
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #0057b7 0%, #108548 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* CTA shimmer */
+        .cta-shimmer { position: relative; overflow: hidden; isolation: isolate; }
+        .cta-shimmer::after {
+            content: ""; position: absolute; top: 0; left: -140%;
+            width: 90%; height: 100%; transform: skewX(-24deg);
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.55), rgba(255,255,255,0));
+            animation: shimmer 3.8s ease-in-out infinite; pointer-events: none;
+        }
+        @keyframes shimmer {
+            0% { left: -140%; }
+            60%, 100% { left: 170%; }
+        }
+
+        /* News spotlight */
+        .news-spotlight {
+            border: 1px solid rgba(0, 87, 183, 0.18);
+            background:
+                radial-gradient(120% 120% at 0% 0%, rgba(0, 87, 183, 0.08), transparent 48%),
+                radial-gradient(100% 100% at 100% 100%, rgba(16, 133, 72, 0.08), transparent 46%),
+                linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            box-shadow: 0 12px 30px rgba(9, 34, 70, 0.08);
+        }
+
+        /* Shine card */
+        .shine-card { position: relative; overflow: hidden; }
+        .shine-card::before {
+            content: ""; position: absolute; top: 0; left: -130%;
+            width: 70%; height: 100%; transform: skewX(-18deg);
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.4), rgba(255,255,255,0));
+            transition: left .6s ease; pointer-events: none;
+        }
+        .shine-card:hover::before { left: 150%; }
+
+        /* News image zoom */
+        .news-img { transition: transform .5s ease; }
+        .news-card:hover .news-img { transform: scale(1.06); }
+
+        /* Specialties slider */
+        .specialties-track {
+            display: flex; gap: 1rem;
+            overflow-x: auto; scroll-snap-type: x mandatory;
+            scroll-behavior: smooth; scrollbar-width: none;
+        }
+        .specialties-track::-webkit-scrollbar { display: none; }
+        .specialty-card { width: 270px; min-width: 270px; scroll-snap-align: start; }
+
+        /* Navbar */
+        .nav-shell {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(240, 247, 255, 0.94) 100%);
+            border-bottom: 5px solid rgba(0, 87, 183, 0.18);
+            box-shadow: 0 10px 28px rgba(9, 34, 70, 0.08);
+            backdrop-filter: blur(10px);
+        }
+        .nav-link {
+            border: 1px solid transparent; border-radius: 9999px;
+            padding: 0.45rem 0.95rem; transition: all .22s ease;
+        }
+        .nav-link:hover {
+            color: #004a9c; background: #eef5ff;
+            border-color: rgba(0, 87, 183, 0.2);
+            box-shadow: 0 6px 16px rgba(0, 87, 183, 0.10);
+        }
+        .nav-cta {
+            background: linear-gradient(135deg, #0057b7 0%, #108548 120%);
+            box-shadow: 0 10px 24px rgba(0, 87, 183, 0.24);
+            transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
+        }
+        .nav-cta:hover {
+            transform: translateY(-2px); filter: brightness(1.04);
+            box-shadow: 0 14px 32px rgba(0, 87, 183, 0.32);
+        }
+
+        /* Step card */
+        .step-card { position: relative; overflow: hidden; }
+        .step-card::before {
+            content: ''; position: absolute; left: 0; top: 0;
+            width: 4px; height: 100%;
+            background: linear-gradient(180deg, #0057b7, #108548);
+            border-radius: 0 4px 4px 0;
+            opacity: 0; transition: opacity .3s ease;
+        }
+        .step-card:hover::before { opacity: 1; }
+
+        /* Doctor card avatar ring */
+        .doc-avatar {
+            background: linear-gradient(135deg, #eef5ff 0%, #d1fae5 100%);
+            border: 2px solid #0057b7;
+        }
+
+        /* Footer */
+        .footer-glow {
+            background:
+                radial-gradient(120% 140% at 0% 100%, rgba(16, 133, 72, 0.18), transparent 55%),
+                radial-gradient(110% 120% at 100% 0%, rgba(0, 87, 183, 0.20), transparent 58%),
+                linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+        }
+        .footer-premium {
+            background:
+                radial-gradient(120% 120% at 0% 0%, rgba(0, 87, 183, 0.10), transparent 40%),
+                radial-gradient(120% 120% at 100% 0%, rgba(16, 133, 72, 0.08), transparent 44%),
+                linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
+            border: 1px solid rgba(0, 87, 183, 0.16);
+            box-shadow: 0 16px 34px rgba(9, 34, 70, 0.12);
+        }
+        .footer-title { color: #003b7d; letter-spacing: 0.06em; }
+        .footer-link { color: #334155; transition: color .2s ease; }
+        .footer-link:hover { color: #0057b7; }
+
+        @keyframes drift {
+            0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+            50% { transform: translateY(20px) translateX(10px) scale(1.05); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .fade-up, .hero-blob, .cta-shimmer::after, .pulse-dot { animation: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slateink font-sans antialiased">
+
+
+    <!-- NAVBAR -->
+    <header class="nav-shell sticky top-0 z-40">
+        <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6">
+            <a href="#" class="flex items-center">
+                <img src="{% static 'images/logo_horizontal.svg' %}" alt="OPDFlow" class="h-14 w-auto object-contain">
+            </a>
+            <nav class="hidden items-center gap-4 text-sm font-semibold text-slate-700 md:flex">
+                <a href="#specialties" class="nav-link">Chuyên khoa</a>
+                <a href="#doctors" class="nav-link">Bác sĩ</a>
+                <a href="#process" class="nav-link">Quy trình</a>
+                <a href="{% url 'news_list' %}" class="nav-link">Tin tức</a>
+                <a href="#footer" class="nav-link">Liên hệ</a>
+            </nav>
+            <a href="{% url 'login' %}" class="nav-cta inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold text-white">
+                <span class="material-symbols-outlined text-[18px]">login</span>
+                Đăng nhập
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <!-- HERO -->
+        <section class="hero-bg soft-grid relative isolate overflow-hidden">
+            <div class="hero-blob one"></div>
+            <div class="hero-blob two"></div>
+            <div class="hero-blob three"></div>
+            <div class="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-24">
+                <div class="fade-up">
+                    <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-600 shadow-card">
+                        <span class="pulse-dot"></span>
+                        Hệ thống đang hoạt động
+                    </p>
+                    <h1 class="text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl md:text-[3.25rem]">
+                        Theo dõi sức khỏe<br>
+                        <span class="gradient-text">chủ động và hiện đại</span>
+                    </h1>
+                    <p class="mt-5 max-w-xl text-base leading-7 text-slate-700 sm:text-lg">
+                        Tra cứu chuyên khoa, theo dõi quy trình khám chữa bệnh và cập nhật tin tức y tế mới nhất từ hệ thống phòng khám thông minh.
+                    </p>
+                    <div class="mt-7 flex flex-wrap items-center gap-3">
+                        <a href="#specialties" class="cta-shimmer inline-flex items-center gap-2 rounded-xl bg-accent-500 px-6 py-3.5 text-sm font-bold text-white shadow-float transition hover:brightness-110 hover:-translate-y-0.5">
+                            Khám phá chuyên khoa
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </a>
+                        <a href="{% url 'news_list' %}" class="inline-flex items-center gap-2 rounded-xl border-2 border-brand-200 bg-white px-6 py-3.5 text-sm font-bold text-brand-700 transition hover:bg-brand-50 hover:border-brand-500">
+                            Tin tức sức khỏe
+                        </a>
+                    </div>
+                </div>
+                <div class="fade-up panel-lift rounded-3xl bg-white p-6" style="animation-delay: .15s">
+                    <div class="flex items-center gap-2 mb-5">
+                        <span class="material-symbols-outlined text-brand-600">analytics</span>
+                        <h2 class="text-lg font-bold text-slate-900">Tổng quan hệ thống</h2>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white p-5 shadow-sm">
+                            <div class="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-brand-100 text-brand-600">
+                                <span class="material-symbols-outlined text-[20px]">stethoscope</span>
+                            </div>
+                            <p class="text-3xl font-extrabold gradient-text">{{ total_specialties }}</p>
+                            <p class="mt-1 text-sm font-medium text-slate-600">Chuyên khoa</p>
+                        </div>
+                        <div class="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm">
+                            <div class="mb-2 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                                <span class="material-symbols-outlined text-[20px]">badge</span>
+                            </div>
+                            <p class="text-3xl font-extrabold text-emerald-700">{{ total_doctors }}</p>
+                            <p class="mt-1 text-sm font-medium text-slate-600">Bác sĩ</p>
+                        </div>
+                        <div class="col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-slate-600">schedule</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-800">Giờ làm việc</p>
+                                <p class="text-xs text-slate-600">Thứ 2 – Thứ 7 · 07:30 – 17:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- CHUYÊN KHOA -->
+        <section id="specialties" class="mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
+            <div class="mb-8 flex items-end justify-between gap-4">
+                <div class="fade-up">
+                    <p class="text-xs font-bold uppercase tracking-widest text-brand-600">Lĩnh vực thăm khám</p>
+                    <h2 class="mt-2 text-3xl font-bold text-slate-900 sm:text-4xl">Chuyên khoa nổi bật</h2>
+                </div>
+                {% if featured_specialties %}
+                <div class="hidden items-center gap-2 md:flex">
+                    <button id="specialtyPrev" type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-brand-200 bg-white text-brand-700 hover:bg-brand-50 hover:border-brand-500 transition" aria-label="Prev">
+                        <span class="material-symbols-outlined text-[22px]">chevron_left</span>
+                    </button>
+                    <button id="specialtyNext" type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-brand-200 bg-white text-brand-700 hover:bg-brand-50 hover:border-brand-500 transition" aria-label="Next">
+                        <span class="material-symbols-outlined text-[22px]">chevron_right</span>
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% if featured_specialties %}
+            <div class="specialties-slider">
+                <div id="specialtiesTrack" class="specialties-track py-2">
+                    {% for item in featured_specialties %}
+                    <article class="specialty-card group panel-lift shine-card rounded-2xl bg-white p-6 fade-up">
+                        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-100 to-brand-50 text-brand-600 group-hover:from-brand-500 group-hover:to-brand-600 group-hover:text-white transition-all">
+                            <span class="material-symbols-outlined text-[24px]">stethoscope</span>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900">{{ item.name }}</h3>
+                        <p class="mt-2 line-clamp-4 text-sm leading-6 text-slate-600">{{ item.description }}</p>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <p class="text-sm text-slate-600">Hiện chưa có dữ liệu chuyên khoa.</p>
+            {% endif %}
+        </section>
+
+        <!-- BÁC SĨ TIÊU BIỂU -->
+        {% if featured_doctors %}
+        <section id="doctors" class="bg-white">
+            <div class="mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
+                <div class="mb-10 fade-up">
+                    <p class="text-xs font-bold uppercase tracking-widest text-brand-600">Đội ngũ chuyên gia</p>
+                    <h2 class="mt-2 text-3xl font-bold text-slate-900 sm:text-4xl">Bác sĩ tiêu biểu</h2>
+                </div>
+                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {% for doc in featured_doctors %}
+                    <article class="panel-lift shine-card rounded-2xl bg-white p-6 fade-up stagger-{{ forloop.counter }}">
+                        <div class="flex items-center gap-4 mb-5">
+                            <div class="doc-avatar h-16 w-16 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-brand-600 text-3xl">person</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-base font-bold text-slate-900 truncate">{{ doc.name }}</h3>
+                                <p class="text-xs font-semibold text-brand-600">{{ doc.title }}</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2.5 text-sm text-slate-700">
+                            <p class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-[18px] text-brand-500 flex-shrink-0 mt-0.5">medical_services</span>
+                                <span>{{ doc.major }}</span>
+                            </p>
+                            <p class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-[18px] text-brand-500 flex-shrink-0 mt-0.5">work_history</span>
+                                <span>{{ doc.experience }} năm kinh nghiệm</span>
+                            </p>
+                            <p class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-[18px] text-brand-500 flex-shrink-0 mt-0.5">location_on</span>
+                                <span class="line-clamp-1">{{ doc.workplace }}</span>
+                            </p>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+
+        <!-- QUY TRÌNH -->
+        <section id="process" class="bg-slate-50">
+            <div class="mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
+                <div class="text-center mb-12 fade-up">
+                    <p class="text-xs font-bold uppercase tracking-widest text-brand-600">Hướng dẫn nhanh</p>
+                    <h2 class="mt-2 text-3xl font-bold text-slate-900 sm:text-4xl">Quy trình đặt lịch đơn giản</h2>
+                    <p class="mt-3 text-sm text-slate-600 max-w-xl mx-auto">Chỉ với 3 bước, bạn có thể đặt lịch và khám bệnh tại phòng khám một cách nhanh chóng</p>
+                </div>
+                <div class="grid gap-5 md:grid-cols-3">
+                    <article class="step-card panel-lift fade-up stagger-1 rounded-2xl bg-white p-7">
+                        <div class="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 font-bold text-white text-lg shadow-lg shadow-brand-500/30">1</div>
+                        <h3 class="text-lg font-bold text-slate-900">Chọn chuyên khoa & bác sĩ</h3>
+                        <p class="mt-2 text-sm leading-6 text-slate-600">Xác định chuyên khoa phù hợp với triệu chứng, chọn bác sĩ và khung giờ mong muốn trên ứng dụng di động.</p>
+                    </article>
+                    <article class="step-card panel-lift fade-up stagger-2 rounded-2xl bg-white p-7">
+                        <div class="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 font-bold text-white text-lg shadow-lg shadow-brand-500/30">2</div>
+                        <h3 class="text-lg font-bold text-slate-900">Xác nhận & nhận mã QR</h3>
+                        <p class="mt-2 text-sm leading-6 text-slate-600">Hoàn tất đặt lịch trên ứng dụng, nhận mã QR bảo mật dùng để check-in tại phòng khám.</p>
+                    </article>
+                    <article class="step-card panel-lift fade-up stagger-3 rounded-2xl bg-white p-7">
+                        <div class="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-accent-500 to-accent-600 font-bold text-white text-lg shadow-lg shadow-accent-500/30">3</div>
+                        <h3 class="text-lg font-bold text-slate-900">Check-in & khám bệnh</h3>
+                        <p class="mt-2 text-sm leading-6 text-slate-600">Đến phòng khám, quét mã QR tại thiết bị tiếp nhận để tự động vào hàng đợi và chờ gọi khám.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- TIN TỨC -->
+        <section id="news" class="mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
+            <div class="news-spotlight rounded-3xl p-6 sm:p-8 md:p-10">
+                <div class="mb-8 flex items-end justify-between gap-4">
+                    <div class="fade-up">
+                        <p class="text-xs font-bold uppercase tracking-widest text-brand-600">Tin tức sức khỏe</p>
+                        <h2 class="mt-2 text-3xl font-bold text-slate-900 sm:text-4xl">Bản tin mới nhất</h2>
+                    </div>
+                    <a href="{% url 'news_list' %}" class="hidden md:inline-flex items-center gap-2 rounded-xl border-2 border-brand-200 bg-white px-5 py-2.5 text-sm font-bold text-brand-700 hover:bg-brand-50 hover:border-brand-500 transition">
+                        Xem tất cả
+                        <span class="material-symbols-outlined text-base">arrow_forward</span>
+                    </a>
+                </div>
+
+                {% if latest_articles %}
+                <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    {% for article in latest_articles|slice:":6" %}
+                    <article class="news-card panel-lift overflow-hidden rounded-2xl bg-white">
+                        <div class="h-48 w-full overflow-hidden bg-brand-100">
+                            {% if article.image_url %}
+                            <img src="{{ article.image_url }}" alt="{{ article.title }}" class="news-img h-full w-full object-cover">
+                            {% else %}
+                            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-100 to-emerald-100 text-brand-700">
+                                <span class="material-symbols-outlined text-5xl">newspaper</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="p-5">
+                            <p class="mb-2 inline-flex rounded-full bg-brand-50 px-2.5 py-1 text-xs font-bold text-brand-700">
+                                {{ article.category_display_name|default:"Tin tức" }}
+                            </p>
+                            <h3 class="line-clamp-2 text-lg font-bold text-slate-900 leading-snug">{{ article.title }}</h3>
+                            <p class="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{{ article.summary|default:article.content_preview }}</p>
+                            <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
+                                <span class="inline-flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-base">schedule</span>
+                                    {{ article.updated_label|default:"Mới cập nhật" }}
+                                </span>
+                                <a href="{% url 'news_list' %}" class="inline-flex items-center gap-1 font-bold text-brand-600 hover:text-brand-700 transition">
+                                    Đọc thêm
+                                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'news_list' %}" class="mt-6 md:hidden inline-flex items-center gap-2 text-sm font-bold text-brand-700">
+                    Xem tất cả tin tức
+                    <span class="material-symbols-outlined text-base">arrow_forward</span>
+                </a>
+                {% else %}
+                <div class="rounded-2xl border-2 border-dashed border-brand-200 bg-brand-50 p-10 text-center">
+                    <span class="material-symbols-outlined text-4xl text-brand-300 mb-2">article</span>
+                    <p class="text-sm font-semibold text-slate-700">Chưa có bài viết tin tức để hiển thị.</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+
+    <!-- FOOTER -->
+    <footer id="footer" class="footer-glow border-t-2 border-brand-200">
+        <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+            <div class="footer-premium overflow-hidden rounded-3xl px-6 py-10 text-slate-800 sm:px-8 md:px-10">
+                <div class="grid gap-8 border-b border-brand-100 pb-8 lg:grid-cols-12">
+                    <div class="lg:col-span-3">
+                        <div class="space-y-3">
+                            <div class="inline-flex h-16 w-44 items-center justify-center rounded-xl border border-brand-200 bg-white p-2 shadow-sm">
+                                <img src="{% static 'images/logo_truong.png' %}" alt="Logo trường" class="max-h-12 w-auto object-contain">
+                            </div>
+                            <div class="inline-flex h-16 w-44 items-center justify-center rounded-xl border border-brand-200 bg-white p-2 shadow-sm">
+                                <img src="{% static 'images/logo.svg' %}" alt="Logo nền tảng" class="max-h-12 w-auto object-contain">
+                            </div>
+                        </div>
+                        <div class="mt-5 flex items-center gap-3 text-brand-700">
+                            <a href="#" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-200 bg-white hover:border-brand-500 hover:bg-brand-50 transition" aria-label="Facebook">
+                                <span class="material-symbols-outlined text-[18px]">public</span>
+                            </a>
+                            <a href="#" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-200 bg-white hover:border-brand-500 hover:bg-brand-50 transition" aria-label="Email">
+                                <span class="material-symbols-outlined text-[18px]">mail</span>
+                            </a>
+                            <a href="#" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-200 bg-white hover:border-brand-500 hover:bg-brand-50 transition" aria-label="Call">
+                                <span class="material-symbols-outlined text-[18px]">call</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-6 sm:grid-cols-2 lg:col-span-9 lg:grid-cols-4">
+                        <section>
+                            <p class="footer-title text-xs font-bold uppercase">Cổng thông tin</p>
+                            <ul class="mt-3 space-y-2 text-sm">
+                                <li class="footer-link">Sức khỏe công cộng</li>
+                                <li class="footer-link">Tra cứu chuyên khoa</li>
+                                <li class="footer-link">Tin tức y tế chính thống</li>
+                                <li class="footer-link">Thông tin minh bạch</li>
+                            </ul>
+                        </section>
+
+                        <section>
+                            <p class="footer-title text-xs font-bold uppercase">Điều hướng nhanh</p>
+                            <ul class="mt-3 space-y-2 text-sm">
+                                <li><a href="#specialties" class="footer-link">Chuyên khoa</a></li>
+                                <li><a href="#doctors" class="footer-link">Bác sĩ tiêu biểu</a></li>
+                                <li><a href="#process" class="footer-link">Quy trình đặt lịch</a></li>
+                                <li><a href="{% url 'news_list' %}" class="footer-link">Tin tức sức khỏe</a></li>
+                            </ul>
+                        </section>
+
+                        <section>
+                            <p class="footer-title text-xs font-bold uppercase">Liên hệ hỗ trợ</p>
+                            <ul class="mt-3 space-y-2 text-sm">
+                                <li class="footer-link">Hotline: 1900 0000</li>
+                                <li class="footer-link">Email: support@opdflow.vn</li>
+                                <li class="footer-link">Hỗ trợ: 07:30 – 17:30</li>
+                                <li class="footer-link">Thứ 2 – Thứ 7</li>
+                            </ul>
+                        </section>
+
+                        <section>
+                            <p class="footer-title text-xs font-bold uppercase">Pháp lý và ghi chú</p>
+                            <ul class="mt-3 space-y-2 text-sm">
+                                <li class="footer-link">Nội dung phục vụ tra cứu thông tin.</li>
+                                <li class="footer-link">Không chứa liên kết quản trị nội bộ.</li>
+                                <li class="footer-link">Ưu tiên bảo mật dữ liệu người dùng.</li>
+                                <li class="footer-link">Tiêu chuẩn hiển thị công khai.</li>
+                            </ul>
+                        </section>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex flex-col gap-2 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+                    <p>© 2026 Cổng Thông Tin Sức Khỏe Công Cộng — OPDFlow.</p>
+                    <p class="text-xs text-slate-500">Đồ án tốt nghiệp · Trường Đại học Cửu Long</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script>
+        (function () {
+            const track = document.getElementById('specialtiesTrack');
+            if (!track) return;
+
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let timer = null;
+
+            function getStepCount() {
+                return window.innerWidth >= 1024 ? 4 : 1;
+            }
+
+            function getCardWidth() {
+                const card = track.querySelector('.specialty-card');
+                if (!card) return 0;
+                const gap = parseFloat(getComputedStyle(track).gap || '16');
+                return card.getBoundingClientRect().width + gap;
+            }
+
+            function scrollBySteps(direction) {
+                const cardWidth = getCardWidth();
+                if (!cardWidth) return;
+                const stepPx = cardWidth * getStepCount() * direction;
+                const maxScroll = track.scrollWidth - track.clientWidth;
+                let target = track.scrollLeft + stepPx;
+                if (target > maxScroll) target = 0;
+                if (target < 0) target = maxScroll;
+                track.scrollTo({ left: target, behavior: 'smooth' });
+            }
+
+            function startAuto() {
+                if (reduceMotion || timer) return;
+                timer = setInterval(() => scrollBySteps(1), 4000);
+            }
+
+            function stopAuto() {
+                if (!timer) return;
+                clearInterval(timer);
+                timer = null;
+            }
+
+            const prevBtn = document.getElementById('specialtyPrev');
+            const nextBtn = document.getElementById('specialtyNext');
+            if (prevBtn) prevBtn.addEventListener('click', () => scrollBySteps(-1));
+            if (nextBtn) nextBtn.addEventListener('click', () => scrollBySteps(1));
+
+            track.addEventListener('mouseenter', stopAuto);
+            track.addEventListener('mouseleave', startAuto);
+            track.addEventListener('touchstart', stopAuto, { passive: true });
+            track.addEventListener('touchend', startAuto, { passive: true });
+
+            startAuto();
+        })();
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                const href = a.getAttribute('href');
+                if (href === '#' || href === '#footer') return;
+                const target = document.querySelector(href);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+﻿{% extends 'base.html' %}
+{% block title %}OPDFlow – Lịch sử khám bệnh{% endblock %}
+
+{% block extra_style %}
+<style>
+.history-page-bg {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+}
+
+.history-page {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+}
+
+.history-shell {
+    background: linear-gradient(145deg, rgba(248, 252, 251, 0.98), rgba(231, 240, 238, 0.94));
+    border: 1px solid rgba(142, 164, 162, 0.42);
+    box-shadow: 0 20px 42px rgba(15, 23, 42, 0.1), 0 6px 16px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(14px);
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.history-shell:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 28px 56px rgba(15, 23, 42, 0.16), 0 12px 24px rgba(15, 23, 42, 0.11);
+}
+
+.history-input {
+    background: rgba(242, 244, 246, 0.9);
+    border: 1px solid rgba(188, 201, 200, 0.44);
+    border-radius: 0.75rem;
+    padding: 0.55rem 0.75rem;
+    color: rgb(25 28 30 / 0.95);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.history-input:focus {
+    outline: none;
+    border-color: rgba(0, 106, 106, 0.7);
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 0 0 3px rgba(0, 139, 139, 0.14), 0 8px 20px rgba(0, 106, 106, 0.12);
+}
+
+.stats-card {
+    background: linear-gradient(160deg, rgba(244, 248, 247, 1), rgba(232, 239, 238, 0.96));
+    border: 1px solid rgba(133, 155, 153, 0.58);
+    border-radius: 1rem;
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12), 0 5px 12px rgba(15, 23, 42, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 26px 46px rgba(15, 23, 42, 0.17), 0 10px 20px rgba(15, 23, 42, 0.1);
+}
+
+.history-record {
+    border: 1px solid rgba(125, 148, 146, 0.62);
+    border-radius: 1rem;
+    overflow: hidden;
+    background: linear-gradient(175deg, rgba(246, 250, 249, 1), rgba(233, 241, 240, 0.95));
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12), 0 5px 14px rgba(15, 23, 42, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.history-record:hover {
+    transform: translateY(-3px);
+    border-color: rgba(0, 106, 106, 0.62);
+    box-shadow: 0 28px 50px rgba(15, 23, 42, 0.18), 0 10px 22px rgba(15, 23, 42, 0.11);
+}
+
+.history-row-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+    text-align: left;
+    transition: background-color 0.2s ease;
+}
+
+.history-row-btn:hover {
+    background: rgba(224, 237, 234, 0.72);
+}
+
+.history-detail {
+    border-top: 1px solid rgba(125, 148, 146, 0.56);
+    background: rgba(226, 237, 235, 0.82);
+    padding: 1rem;
+}
+
+.detail-box {
+    background: rgba(240, 247, 246, 0.98);
+    border: 1px solid rgba(133, 155, 153, 0.46);
+    border-radius: 0.85rem;
+    padding: 0.9rem;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.09);
+}
+
+.record-chip {
+    border: 1px solid rgba(133, 155, 153, 0.46);
+    background: rgba(232, 239, 238, 0.92);
+}
+
+.record-time-chip {
+    border: 1px solid rgba(0, 106, 106, 0.28);
+    background: rgba(0, 106, 106, 0.14);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="history-page-bg">
+<div class="history-page">
+<!-- Header -->
+<div class="mb-gutter flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div>
+        <h2 class="font-h1 text-h1 text-on-background mb-1">Lịch sử khám bệnh</h2>
+        <p class="font-body-lg text-body-lg text-outline">Xem chi tiết các ca khám đã thực hiện</p>
+    </div>
+</div>
+
+<!-- Date filter -->
+<div class="history-shell p-lg mb-gutter">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4 items-end">
+        <div class="flex flex-col gap-1 min-w-[200px] xl:col-span-2">
+            <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider" for="historySearch">Tìm kiếm</label>
+            <input id="historySearch" type="text" name="search" value="{{ search_query }}" placeholder="Tên, số điện thoại, chẩn đoán..." class="history-input">
+        </div>
+        <div class="flex flex-col gap-1 min-w-[200px]">
+            <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider" for="historyDateFrom">Từ ngày</label>
+            <input id="historyDateFrom" type="date" name="date_from" value="{{ selected_start_date|date:'Y-m-d' }}" class="history-input">
+        </div>
+        <div class="flex flex-col gap-1 min-w-[200px]">
+            <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider" for="historyDateTo">Đến ngày</label>
+            <input id="historyDateTo" type="date" name="date_to" value="{{ selected_end_date|date:'Y-m-d' }}" class="history-input">
+        </div>
+        <button type="submit" class="xl:col-span-1 px-5 py-2 bg-gradient-to-b from-primary to-surface-tint text-on-primary rounded-lg font-data-mono text-data-mono hover:shadow-md transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">search</span> Lọc dữ liệu
+        </button>
+        <a href="{% url 'history' %}" class="xl:col-span-1 px-5 py-2 bg-surface-container border border-outline-variant/40 rounded-lg font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors flex items-center justify-center">Đặt lại</a>
+        <div class="xl:col-span-1 px-4 py-2 rounded-lg bg-primary/10 text-primary font-body-md text-body-md">
+            Khoảng lọc: {{ selected_start_date|date:"d/m/Y" }} - {{ selected_end_date|date:"d/m/Y" }}
+        </div>
+    </form>
+</div>
+
+<!-- Stats row -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-gutter mb-gutter">
+    <div class="stats-card p-md text-center">
+        <span class="material-symbols-outlined text-primary text-[32px] block mb-1">event_note</span>
+        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-1">Tổng số khám</div>
+        <div class="font-h2 text-h2 text-on-surface">{{ history_total_count }}</div>
+    </div>
+    <div class="stats-card p-md text-center">
+        <span class="material-symbols-outlined text-primary-container text-[32px] block mb-1">check_circle</span>
+        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-1">Đã hoàn thành</div>
+        <div class="font-h2 text-h2 text-on-surface">{{ completed_count }}</div>
+    </div>
+    <div class="stats-card p-md text-center">
+        <span class="material-symbols-outlined text-secondary-container text-[32px] block mb-1">groups</span>
+        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-1">Bệnh nhân</div>
+        <div class="font-h2 text-h2 text-on-surface">{{ unique_patient_count }}</div>
+    </div>
+    <div class="stats-card p-md text-center">
+        <span class="material-symbols-outlined text-secondary text-[32px] block mb-1">calendar_month</span>
+        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-1">Số ngày lọc</div>
+        <div class="font-h2 text-h2 text-on-surface">{{ range_days }}</div>
+    </div>
+</div>
+
+<!-- Records list -->
+<section class="history-shell p-lg">
+    <div class="flex items-center gap-2 mb-6 pb-3 border-b border-surface-variant">
+        <span class="material-symbols-outlined text-primary">history</span>
+        <h2 class="font-h3 text-h3 text-on-surface">Danh sách khám từ <span class="text-primary">{{ selected_start_date|date:"d/m/Y" }}</span> đến <span class="text-primary">{{ selected_end_date|date:"d/m/Y" }}</span></h2>
+    </div>
+
+    {% if history_appointments %}
+    <div class="space-y-3" id="historyList">
+        {% for record in history_appointments %}
+        <div class="history-record">
+            <button type="button" class="history-row-btn"
+                    onclick="toggleHistory('historyDetail{{ forloop.counter }}', this)">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-semibold shrink-0">
+                        {{ record.name|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <div class="font-h3 text-h3 text-on-surface">{{ record.name }}</div>
+                        <div class="font-body-md text-body-md text-outline flex gap-3">
+                            {% if record.age %}<span>{{ record.age }} tuổi</span>{% endif %}
+                            {% if record.gender %}<span>{{ record.gender }}</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                        {% if record.status_key == 'scheduled' %}bg-[#fff8e6] border border-[#f6d88a] text-[#8a5a00]
+                        {% elif record.status_key == 'waiting' %}bg-[#ecf7ef] border border-[#b7e1bf] text-[#1f6b35]
+                        {% elif record.status_key == 'cancelled' %}bg-error-container border border-error/20 text-on-error-container
+                        {% elif record.status_key == 'completed' %}bg-primary-fixed/30 border border-primary/20 text-primary
+                        {% else %}bg-surface-container border border-outline-variant/40 text-outline{% endif %}">
+                        {{ record.status }}
+                    </span>
+                    {% if record.date %}<span class="record-chip px-3 py-1 rounded-full font-data-mono text-data-mono text-on-surface-variant">{{ record.date }}</span>{% endif %}
+                    {% if record.time %}<span class="record-time-chip px-3 py-1 text-primary rounded-full font-data-mono text-data-mono">{{ record.time }}</span>{% endif %}
+                    <span class="material-symbols-outlined text-outline transition-transform duration-200 accordion-icon">expand_more</span>
+                </div>
+            </button>
+            <div id="historyDetail{{ forloop.counter }}" class="hidden history-detail">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+                    <div class="detail-box">
+                        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-2">Triệu chứng</div>
+                        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">{{ record.symptoms|default:"-" }}</p>
+                    </div>
+                    <div class="detail-box">
+                        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-2">Chẩn đoán</div>
+                        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">{{ record.diagnosis|default:"-" }}</p>
+                    </div>
+                    <div class="detail-box">
+                        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-2">Lời dặn</div>
+                        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">{{ record.advice|default:"-" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if history_page_obj and history_page_obj.paginator.num_pages > 1 %}
+    <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-surface-variant pt-4">
+        <div class="font-body-md text-body-md text-outline">
+            Trang {{ history_page_obj.number }} / {{ history_page_obj.paginator.num_pages }}
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            {% if history_page_obj.has_previous %}
+            <a class="px-4 py-2 rounded-lg bg-surface-container border border-outline-variant/40 font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors"
+                    href="?date_from={{ selected_start_date|date:'Y-m-d' }}&date_to={{ selected_end_date|date:'Y-m-d' }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ history_page_obj.previous_page_number }}">Trước</a>
+            {% endif %}
+
+            {% for page_num in history_page_obj.paginator.page_range %}
+                {% if page_num == history_page_obj.number %}
+                <span class="px-4 py-2 rounded-lg bg-primary text-on-primary font-data-mono text-data-mono">{{ page_num }}</span>
+                {% else %}
+                <a class="px-4 py-2 rounded-lg bg-surface-container border border-outline-variant/40 font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors"
+                   href="?date_from={{ selected_start_date|date:'Y-m-d' }}&date_to={{ selected_end_date|date:'Y-m-d' }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ page_num }}">{{ page_num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if history_page_obj.has_next %}
+            <a class="px-4 py-2 rounded-lg bg-surface-container border border-outline-variant/40 font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors"
+               href="?date_from={{ selected_start_date|date:'Y-m-d' }}&date_to={{ selected_end_date|date:'Y-m-d' }}{% if search_query %}&search={{ search_query|urlencode }}{% endif %}&page={{ history_page_obj.next_page_number }}">Sau</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="text-center py-16">
+        <span class="material-symbols-outlined text-[64px] text-outline/30 block mb-4">event_busy</span>
+        <h3 class="font-h3 text-h3 text-on-surface-variant mb-2">Không có dữ liệu</h3>
+        <p class="font-body-md text-body-md text-outline">Không tìm thấy lịch sử khám trong khoảng <strong>{{ selected_start_date|date:"d/m/Y" }} - {{ selected_end_date|date:"d/m/Y" }}</strong>.</p>
+    </div>
+    {% endif %}
+</section>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleHistory(id, btn) {
+    const el = document.getElementById(id);
+    const icon = btn.querySelector('.accordion-icon');
+    if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        if (icon) icon.style.transform = 'rotate(180deg)';
+    } else {
+        el.classList.add('hidden');
+        if (icon) icon.style.transform = '';
+    }
+}
+</script>
+{% endblock %}

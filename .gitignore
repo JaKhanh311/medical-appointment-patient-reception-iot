@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+.env.*
+
+# Django
+*.sqlite3
+db.sqlite3
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# Firebase / credentials
+firebase-key*
+google-services*.json
+*-firebase-adminsdk-*.json
+*-default-rtdb-export.json
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,616 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard - OPDFlow{% endblock %}
+
+{% block extra_style %}
+.session-filter-btn.is-active {
+    background: linear-gradient(135deg, #00685f 0%, #006a61 100%);
+    color: #ffffff;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(0,104,95,0.25);
+}
+.appointment-row.is-hidden { display: none; }
+@keyframes live-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.live-dot { animation: live-pulse 1.8s ease-in-out infinite; }
+@keyframes slide-in { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.toast-enter { animation: slide-in .3s ease; }
+{% endblock %}
+
+{% block content %}
+<div id="dashboardData"
+     data-selected-date="{{ selected_date_iso }}"
+     data-is-today="{{ is_today|yesno:'true,false' }}"
+     data-poll-url="{% url 'dashboard_poll' %}"
+     data-examine-base="/appointments/examine/"
+     data-update-priority-url="{% url 'update_priority' %}"
+     style="display:none;"></div>
+
+<!-- PAGE HEADER -->
+<div class="mb-gutter flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div>
+        <h2 class="font-h1 text-h1 text-on-background mb-1">Lịch khám ngày {{ selected_date|date:"d/m/Y" }}</h2>
+        <p class="font-body-lg text-body-lg text-outline">
+            BS. {{ request.session.doctor_name|default:"Bác sĩ" }}
+            {% if request.session.specialty_name %} – Khoa {{ request.session.specialty_name }}{% endif %}
+        </p>
+    </div>
+    <div class="flex items-center gap-3">
+        <div id="liveIndicator" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary font-data-mono text-[12px]">
+            <span class="live-dot w-2 h-2 rounded-full bg-primary inline-block"></span>
+            <span id="liveStatus">Đang kết nối...</span>
+        </div>
+        <a href="{% url 'add_patient' %}" class="inline-flex items-center gap-2 bg-gradient-to-b from-primary to-surface-tint text-on-primary px-6 py-3 rounded-lg font-data-mono text-data-mono shadow-[0_4px_14px_rgba(0,104,95,0.25)] hover:shadow-[0_6px_20px_rgba(0,104,95,0.3)] transition-all active:scale-95">
+            <span class="material-symbols-outlined text-[18px]">add</span>
+            Thêm bệnh nhân
+        </a>
+    </div>
+</div>
+
+<!-- FILTER FORM -->
+<div class="bg-surface-container-lowest/80 backdrop-blur-xl border border-white/60 rounded-xl p-lg shadow-sm mb-gutter">
+    <form method="get" class="flex flex-wrap gap-4 items-end">
+        <div class="flex flex-col gap-1 min-w-[160px]">
+            <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider" for="dashboardDate">Ngày khám</label>
+            <input id="dashboardDate" type="date" name="date" value="{{ selected_date_iso }}"
+                   class="bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-inner">
+        </div>
+        <div class="flex flex-col gap-1 flex-1 min-w-[200px]">
+            <label class="font-label-sm text-label-sm text-outline uppercase tracking-wider" for="dashboardSearch">Tìm bệnh nhân</label>
+            <input id="dashboardSearch" type="text" name="search" value="{{ search_query }}" placeholder="Nhập tên hoặc số điện thoại..."
+                   class="bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-body-md font-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all shadow-inner">
+        </div>
+        <button type="submit" class="px-5 py-2 bg-primary text-on-primary rounded-lg font-data-mono text-data-mono hover:bg-surface-tint transition-colors flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">search</span> Tìm kiếm
+        </button>
+        <a href="{% url 'dashboard' %}" class="px-5 py-2 bg-surface-container border border-outline-variant/40 rounded-lg font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors">Xóa lọc</a>
+        <a href="{% url 'patient_display' %}?date={{ selected_date_iso }}" id="openPatientDisplay" target="_blank" rel="noopener"
+           class="px-5 py-2 border border-primary text-primary rounded-lg font-data-mono text-data-mono hover:bg-primary/5 transition-colors flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">display</span> Phòng chờ
+        </a>
+    </form>
+</div>
+
+<!-- STATS GRID -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-gutter mb-xl">
+    <div class="relative overflow-hidden bg-surface-container-lowest/80 backdrop-blur-xl border border-white/60 shadow-sm rounded-xl p-lg flex flex-col justify-between group hover:shadow-[0_8px_30px_rgba(30,41,59,0.06)] transition-all">
+        <span class="material-symbols-outlined absolute -top-4 -right-4 text-[100px] text-primary/5 select-none pointer-events-none group-hover:scale-110 transition-transform duration-500 icon-filled">calendar_month</span>
+        <div class="mb-md"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Tổng lịch</span></div>
+        <div class="font-h1 text-[40px] leading-none text-on-surface font-black" id="statTotal">{{ dashboard_stats.total }}</div>
+    </div>
+    <div class="relative overflow-hidden bg-surface-container-lowest/80 backdrop-blur-xl border border-white/60 shadow-sm rounded-xl p-lg flex flex-col justify-between group hover:shadow-[0_8px_30px_rgba(30,41,59,0.06)] transition-all">
+        <span class="material-symbols-outlined absolute -top-4 -right-4 text-[100px] text-secondary-container/10 select-none pointer-events-none group-hover:scale-110 transition-transform duration-500 icon-filled">event_seat</span>
+        <div class="mb-md flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></div>
+            <span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Đang chờ</span>
+        </div>
+        <div class="font-h1 text-[40px] leading-none text-on-surface font-black" id="statWaiting">{{ dashboard_stats.waiting }}</div>
+    </div>
+    <div class="relative overflow-hidden bg-surface-container-lowest/80 backdrop-blur-xl border border-white/60 shadow-sm rounded-xl p-lg flex flex-col justify-between group hover:shadow-[0_8px_30px_rgba(30,41,59,0.06)] transition-all">
+        <span class="material-symbols-outlined absolute -top-4 -right-4 text-[100px] text-outline/5 select-none pointer-events-none group-hover:scale-110 transition-transform duration-500 icon-filled">check_circle</span>
+        <div class="mb-md"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Đã khám</span></div>
+        <div class="font-h1 text-[40px] leading-none text-on-surface font-black" id="statCompleted">{{ dashboard_stats.completed }}</div>
+    </div>
+    <div class="relative overflow-hidden bg-surface-container-lowest/80 backdrop-blur-xl border border-white/60 shadow-sm rounded-xl p-lg flex flex-col justify-between group hover:shadow-[0_8px_30px_rgba(30,41,59,0.06)] transition-all">
+        <span class="material-symbols-outlined absolute -top-4 -right-4 text-[100px] text-primary/5 select-none pointer-events-none group-hover:scale-110 transition-transform duration-500 icon-filled">schedule</span>
+        <div class="mb-md"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Chưa đến</span></div>
+        <div class="font-h1 text-[40px] leading-none text-on-surface font-black" id="statScheduled">{{ dashboard_stats.scheduled }}</div>
+    </div>
+</div>
+
+<!-- SESSION FILTER TABS -->
+<div class="bg-surface-container-lowest/80 backdrop-blur-xl border border-white/60 rounded-xl p-md shadow-sm mb-gutter flex items-center gap-3 flex-wrap">
+    <span class="font-label-sm text-label-sm text-outline uppercase tracking-wider mr-2">Chọn buổi</span>
+    <button type="button" class="session-filter-btn inline-flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant/50 font-data-mono text-data-mono text-on-surface transition-all" data-session-filter="all">
+        <span class="material-symbols-outlined text-[16px]">list</span>
+        Tất cả <span class="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-xs tab-total">{{ dashboard_stats.total }}</span>
+    </button>
+    <button type="button" class="session-filter-btn inline-flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant/50 font-data-mono text-data-mono text-on-surface transition-all" data-session-filter="morning">
+        <span class="material-symbols-outlined text-[16px]">wb_sunny</span>
+        Buổi sáng <span class="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-xs tab-morning">{{ dashboard_stats.morning }}</span>
+    </button>
+    <button type="button" class="session-filter-btn inline-flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant/50 font-data-mono text-data-mono text-on-surface transition-all" data-session-filter="afternoon">
+        <span class="material-symbols-outlined text-[16px]">nights_stay</span>
+        Buổi chiều <span class="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-xs tab-afternoon">{{ dashboard_stats.afternoon }}</span>
+    </button>
+</div>
+
+<!-- APPOINTMENT LIST -->
+<div class="space-y-sm" id="appointmentList">
+    {% for p in all_today_appointments %}
+    <article class="appointment-row relative bg-surface-container-lowest/90 backdrop-blur-md border border-white shadow-sm rounded-xl p-4 pr-6 flex flex-col sm:flex-row sm:items-center gap-md overflow-hidden hover:shadow-[0_8px_30px_rgba(30,41,59,0.06)] transition-all"
+             data-session="{{ p.session_key }}"
+             data-appointment-id="{{ p.appointment_id }}"
+             id="apt-{{ p.appointment_id|slugify }}">
+        <div class="absolute left-0 top-0 bottom-0 w-[6px] rounded-l-xl
+            {% if p.status_key == 'waiting' %}bg-secondary-container
+            {% elif p.status_key == 'completed' %}bg-primary-container
+            {% elif p.status_key == 'cancelled' %}bg-error
+            {% else %}bg-outline-variant{% endif %}"></div>
+        <div class="w-24 pl-4 sm:text-right sm:border-r border-surface-variant sm:pr-4 flex flex-col justify-center shrink-0">
+            <span class="font-data-mono text-data-mono text-on-surface">{{ p.time_display }}</span>
+            {% if p.time %}<span class="font-label-sm text-[10px] text-outline uppercase">{{ p.session_label }}</span>{% endif %}
+        </div>
+        <div class="flex-1 pl-2">
+            <div class="flex flex-wrap items-center gap-2 mb-1">
+                <h3 class="font-h3 text-h3 text-on-surface">{{ p.name }}</h3>
+                <span class="px-3 py-1 rounded-full text-xs font-semibold font-label-sm
+                    {% if p.status_key == 'waiting' %}bg-[#fff8ec] border border-[#fde6c4] text-[#8a6018]
+                    {% elif p.status_key == 'completed' %}bg-primary-fixed/30 border border-primary/20 text-primary
+                    {% elif p.status_key == 'cancelled' %}bg-error-container border border-error/20 text-on-error-container
+                    {% else %}bg-surface-container border border-outline-variant/40 text-outline{% endif %}">
+                    {{ p.status|upper }}
+                </span>
+                {% if p.isPriority %}
+                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-[#fff8ec] border border-[#fde6c4] text-[#8a6018] flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px] icon-filled">star</span>
+                    {{ p.priorityReason|default:"Ưu tiên" }}
+                </span>
+                {% endif %}
+            </div>
+            <p class="font-body-md text-body-md text-outline flex flex-wrap gap-3">
+                {% if p.phone %}<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">phone</span>{{ p.phone }}</span>{% endif %}
+                {% if p.age %}<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span>{{ p.age }} tuổi</span>{% endif %}
+                {% if p.gender %}<span>{{ p.gender }}</span>{% endif %}
+            </p>
+            {% if p.summary_text %}<p class="font-body-md text-body-md text-on-surface-variant mt-1">{{ p.summary_text }}</p>{% endif %}
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+            <button type="button"
+                    class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center text-outline hover:bg-surface hover:text-primary transition-colors"
+                    onclick="openPatientModal('{{ p.appointment_id|slugify }}')">
+                <span class="material-symbols-outlined text-[18px]">info</span>
+            </button>
+            {% if p.status_key == 'waiting' %}
+            <a href="{% url 'examine' p.appointment_id %}"
+               class="px-4 py-2 bg-gradient-to-b from-primary to-surface-tint text-on-primary rounded-lg font-data-mono text-data-mono shadow-sm hover:shadow-md transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px]">stethoscope</span>
+                Khám ngay
+            </a>
+            {% endif %}
+            <button type="button"
+                    class="priority-btn px-3 py-2 rounded-lg border font-data-mono text-data-mono transition-all flex items-center gap-1
+                    {% if p.isPriority %}border-[#fde6c4] bg-[#fff8ec] text-[#8a6018] hover:bg-[#fef3de]{% else %}border-outline-variant/50 text-outline hover:text-primary hover:border-primary/40{% endif %}"
+                    data-appointment-id="{{ p.appointment_id }}"
+                    data-patient-id="{{ p.patient_id }}"
+                    data-session-key="{{ p.session_key }}"
+                    data-is-priority="{{ p.isPriority|yesno:'true,false' }}">
+                <span class="material-symbols-outlined text-[16px] {% if p.isPriority %}icon-filled{% endif %}">star</span>
+                {% if p.isPriority %}Bỏ ưu tiên{% else %}Ưu tiên{% endif %}
+            </button>
+        </div>
+    </article>
+    {% empty %}
+    <div class="server-empty bg-surface-container-lowest/60 border border-outline-variant/30 rounded-xl p-8 text-center">
+        <span class="material-symbols-outlined text-[48px] text-outline/30 block mb-3">event_busy</span>
+        <h3 class="font-h3 text-h3 text-on-surface-variant mb-1">Chưa có lịch khám</h3>
+        <p class="font-body-md text-body-md text-outline">Không tìm thấy lịch hẹn nào cho ngày đang chọn.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="hidden bg-surface-container-lowest/60 border border-outline-variant/30 rounded-xl p-8 text-center mt-sm" id="clientEmptyState">
+    <span class="material-symbols-outlined text-[48px] text-outline/30 block mb-3">search_off</span>
+    <h3 class="font-h3 text-h3 text-on-surface-variant mb-1">Không có bệnh nhân phù hợp</h3>
+    <p class="font-body-md text-body-md text-outline">Bộ lọc buổi hiện tại chưa khớp với lịch hẹn nào.</p>
+</div>
+
+<!-- PATIENT DETAIL MODALS -->
+<div id="patientModalsContainer">
+{% for p in all_today_appointments %}
+<div id="patientModal{{ p.appointment_id|slugify }}" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closePatientModal('{{ p.appointment_id|slugify }}')"></div>
+    <div class="relative bg-surface-container-lowest/95 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-[0_25px_60px_rgba(30,41,59,0.15)] w-full max-w-md p-lg">
+        <div class="flex items-center justify-between mb-lg pb-4 border-b border-outline-variant/20">
+            <h3 class="font-h3 text-h3 text-on-surface">Thông tin bệnh nhân</h3>
+            <button onclick="closePatientModal('{{ p.appointment_id|slugify }}')" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Họ tên</div><div class="font-data-mono text-data-mono text-on-surface">{{ p.name }}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Trạng thái</div>
+                    <span class="px-2 py-1 rounded-md text-xs font-label-sm
+                        {% if p.status_key == 'waiting' %}bg-[#fff8ec] text-[#8a6018]
+                        {% elif p.status_key == 'completed' %}bg-primary-fixed/30 text-primary
+                        {% else %}bg-surface-container text-outline{% endif %}">{{ p.status }}</span>
+                </div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Giới tính / Tuổi</div><div class="font-body-md text-body-md text-on-surface">{% if p.gender %}{{ p.gender }}{% endif %}{% if p.age %} – {{ p.age }} tuổi{% endif %}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Ngày sinh</div><div class="font-body-md text-body-md text-on-surface">{% if p.birthdate %}{{ p.birthdate }}{% else %}-{% endif %}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Điện thoại</div><div class="font-body-md text-body-md text-on-surface">{% if p.phone %}{{ p.phone }}{% else %}-{% endif %}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Buổi / Giờ</div><div class="font-body-md text-body-md text-on-surface">{{ selected_date|date:"d/m/Y" }} {{ p.time_display }}</div></div>
+            </div>
+            {% if p.summary_text %}<div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Ghi chú</div><div class="font-body-md text-body-md text-on-surface">{{ p.summary_text }}</div></div>{% endif %}
+            {% if p.isPriority %}<div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Lý do ưu tiên</div><div class="font-body-md text-body-md text-on-surface">{{ p.priorityReason|default:"Bệnh nhân ưu tiên" }}</div></div>{% endif %}
+        </div>
+        <div class="mt-lg pt-4 border-t border-outline-variant/20 flex justify-end">
+            <button onclick="closePatientModal('{{ p.appointment_id|slugify }}')" class="px-5 py-2 bg-surface-container border border-outline-variant/40 rounded-lg font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors">Đóng</button>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+
+<!-- PRIORITY MODAL -->
+<div id="priorityModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closePriorityModal()"></div>
+    <div class="relative bg-surface-container-lowest/95 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-[0_25px_60px_rgba(30,41,59,0.15)] w-full max-w-md p-lg">
+        <div class="flex items-center justify-between mb-lg pb-4 border-b border-outline-variant/20">
+            <h3 class="font-h3 text-h3 text-on-surface">Đánh dấu ưu tiên</h3>
+            <button onclick="closePriorityModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+        <form id="priorityForm" class="space-y-3">
+            <p class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-3">Lý do ưu tiên</p>
+            <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container cursor-pointer transition-colors">
+                <input class="priority-option accent-primary" type="radio" name="priorityReason" value="Người cao tuổi">
+                <span class="font-body-md text-body-md text-on-surface">Người cao tuổi (65+)</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container cursor-pointer transition-colors">
+                <input class="priority-option accent-primary" type="radio" name="priorityReason" value="Phụ nữ mang thai">
+                <span class="font-body-md text-body-md text-on-surface">Phụ nữ mang thai</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container cursor-pointer transition-colors">
+                <input class="priority-option accent-primary" type="radio" name="priorityReason" value="Thương binh, liệt sĩ">
+                <span class="font-body-md text-body-md text-on-surface">Thương binh, liệt sĩ</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container cursor-pointer transition-colors">
+                <input class="priority-option accent-primary" type="radio" name="priorityReason" value="Người có công với đất nước">
+                <span class="font-body-md text-body-md text-on-surface">Người có công với đất nước</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container cursor-pointer transition-colors">
+                <input class="priority-option accent-primary" type="radio" name="priorityReason" value="Lý do khác">
+                <span class="font-body-md text-body-md text-on-surface">Lý do khác</span>
+            </label>
+            <input type="text" id="priorityCustom"
+                   class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-body-md font-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary hidden"
+                   placeholder="Nhập lý do ưu tiên">
+        </form>
+        <div class="mt-lg pt-4 border-t border-outline-variant/20 flex justify-end gap-3">
+            <button onclick="closePriorityModal()" class="px-5 py-2 bg-surface-container border border-outline-variant/40 rounded-lg font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors">Hủy</button>
+            <button id="confirmPriorityBtn" class="px-5 py-2 bg-gradient-to-b from-primary to-surface-tint text-on-primary rounded-lg font-data-mono text-data-mono shadow-sm hover:shadow-md transition-all">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="liveToast" class="hidden fixed top-4 right-4 z-[200] flex items-center gap-3 bg-[#00685f] text-white px-5 py-3 rounded-xl shadow-[0_8px_30px_rgba(0,104,95,0.35)] font-data-mono text-[13px] max-w-xs toast-enter">
+    <span class="material-symbols-outlined text-[18px]">sync</span>
+    <span id="liveToastMsg">Dữ liệu đã được cập nhật</span>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ---- helpers ---- */
+function openPatientModal(id) { document.getElementById('patientModal' + id)?.classList.remove('hidden'); }
+function closePatientModal(id) { document.getElementById('patientModal' + id)?.classList.add('hidden'); }
+function closePriorityModal() { document.getElementById('priorityModal').classList.add('hidden'); }
+
+function slugify(str) {
+    return String(str||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+}
+function esc(str) {
+    return String(str||'')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function findAppointmentRow(appointmentId) {
+    return Array.from(document.querySelectorAll('#appointmentList .appointment-row'))
+        .find((row) => row.dataset.appointmentId === String(appointmentId || '')) || null;
+}
+
+function dedupeAppointments(appointments) {
+    const seen = new Set();
+    return (appointments || []).filter((appointment) => {
+        const key = String(appointment.appointment_id || '');
+        if (!key || seen.has(key)) {
+            return false;
+        }
+        seen.add(key);
+        return true;
+    });
+}
+
+/* ---- stripe / badge CSS ---- */
+function stripeClass(k){
+    return k==='waiting'?'bg-secondary-container':k==='completed'?'bg-primary-container':k==='cancelled'?'bg-error':'bg-outline-variant';
+}
+function badgeClass(k){
+    return k==='waiting'?'bg-[#fff8ec] border border-[#fde6c4] text-[#8a6018]':
+           k==='completed'?'bg-primary-fixed/30 border border-primary/20 text-primary':
+           k==='cancelled'?'bg-error-container border border-error/20 text-on-error-container':
+           'bg-surface-container border border-outline-variant/40 text-outline';
+}
+function modalBadge(k){
+    return k==='waiting'?'bg-[#fff8ec] text-[#8a6018]':k==='completed'?'bg-primary-fixed/30 text-primary':'bg-surface-container text-outline';
+}
+function priorityBtnClass(ip){
+    return ip?'border-[#fde6c4] bg-[#fff8ec] text-[#8a6018] hover:bg-[#fef3de]':
+              'border-outline-variant/50 text-outline hover:text-primary hover:border-primary/40';
+}
+
+/* ---- card builder ---- */
+function buildCard(p, examineBase){
+    const sid=slugify(p.appointment_id);
+    const examineBtn=p.status_key==='waiting'
+        ?`<a href="${examineBase}${esc(p.appointment_id)}/" class="px-4 py-2 bg-gradient-to-b from-primary to-surface-tint text-on-primary rounded-lg font-data-mono text-data-mono shadow-sm hover:shadow-md transition-all flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">stethoscope</span>Khám ngay</a>`:'';
+    const prioTag=p.isPriority
+        ?`<span class="px-3 py-1 rounded-full text-xs font-semibold bg-[#fff8ec] border border-[#fde6c4] text-[#8a6018] flex items-center gap-1"><span class="material-symbols-outlined text-[14px] icon-filled">star</span>${esc(p.priorityReason||'Ưu tiên')}</span>`:'';
+    const meta=[
+        p.phone?`<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">phone</span>${esc(p.phone)}</span>`:'',
+        p.age?`<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span>${esc(p.age)} tuổi</span>`:'',
+        p.gender?`<span>${esc(p.gender)}</span>`:''
+    ].filter(Boolean).join('');
+    const summary=p.summary_text?`<p class="font-body-md text-body-md text-on-surface-variant mt-1">${esc(p.summary_text)}</p>`:'';
+    const sessLbl=p.time?`<span class="font-label-sm text-[10px] text-outline uppercase">${esc(p.session_label)}</span>`:'';
+    return `<article class="appointment-row relative bg-surface-container-lowest/90 backdrop-blur-md border border-white shadow-sm rounded-xl p-4 pr-6 flex flex-col sm:flex-row sm:items-center gap-md overflow-hidden hover:shadow-[0_8px_30px_rgba(30,41,59,0.06)] transition-all" data-session="${esc(p.session_key)}" data-appointment-id="${esc(p.appointment_id)}" id="apt-${sid}">
+    <div class="absolute left-0 top-0 bottom-0 w-[6px] rounded-l-xl ${stripeClass(p.status_key)}"></div>
+    <div class="w-24 pl-4 sm:text-right sm:border-r border-surface-variant sm:pr-4 flex flex-col justify-center shrink-0">
+        <span class="font-data-mono text-data-mono text-on-surface">${esc(p.time_display)}</span>${sessLbl}
+    </div>
+    <div class="flex-1 pl-2">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+            <h3 class="font-h3 text-h3 text-on-surface">${esc(p.name)}</h3>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold font-label-sm ${badgeClass(p.status_key)}">${esc((p.status||'').toUpperCase())}</span>
+            ${prioTag}
+        </div>
+        <p class="font-body-md text-body-md text-outline flex flex-wrap gap-3">${meta}</p>${summary}
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+        <button type="button" class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center text-outline hover:bg-surface hover:text-primary transition-colors" onclick="openPatientModal('${sid}')">
+            <span class="material-symbols-outlined text-[18px]">info</span>
+        </button>
+        ${examineBtn}
+        <button type="button" class="priority-btn px-3 py-2 rounded-lg border font-data-mono text-data-mono transition-all flex items-center gap-1 ${priorityBtnClass(p.isPriority)}"
+                data-appointment-id="${esc(p.appointment_id)}" data-patient-id="${esc(p.patient_id)}"
+                data-session-key="${esc(p.session_key)}" data-is-priority="${p.isPriority?'true':'false'}">
+            <span class="material-symbols-outlined text-[16px] ${p.isPriority?'icon-filled':''}">star</span>
+            ${p.isPriority?'Bỏ ưu tiên':'Ưu tiên'}
+        </button>
+    </div>
+</article>`;
+}
+
+/* ---- modal builder ---- */
+function buildModal(p, dateTxt){
+    const sid=slugify(p.appointment_id);
+    return `<div id="patientModal${sid}" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="closePatientModal('${sid}')"></div>
+    <div class="relative bg-surface-container-lowest/95 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-[0_25px_60px_rgba(30,41,59,0.15)] w-full max-w-md p-lg">
+        <div class="flex items-center justify-between mb-lg pb-4 border-b border-outline-variant/20">
+            <h3 class="font-h3 text-h3 text-on-surface">Thông tin bệnh nhân</h3>
+            <button onclick="closePatientModal('${sid}')" class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]">close</span></button>
+        </div>
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Họ tên</div><div class="font-data-mono text-data-mono text-on-surface">${esc(p.name)}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Trạng thái</div><span class="px-2 py-1 rounded-md text-xs font-label-sm ${modalBadge(p.status_key)}">${esc(p.status)}</span></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Giới tính / Tuổi</div><div class="font-body-md text-body-md text-on-surface">${esc(p.gender)}${p.age?' – '+esc(String(p.age))+' tuổi':''}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Ngày sinh</div><div class="font-body-md text-body-md text-on-surface">${esc(p.birthdate)||'-'}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Điện thoại</div><div class="font-body-md text-body-md text-on-surface">${esc(p.phone)||'-'}</div></div>
+                <div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Buổi / Giờ</div><div class="font-body-md text-body-md text-on-surface">${esc(dateTxt)} ${esc(p.time_display)}</div></div>
+            </div>
+            ${p.summary_text?`<div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Ghi chú</div><div class="font-body-md text-body-md text-on-surface">${esc(p.summary_text)}</div></div>`:''}
+            ${p.isPriority?`<div><div class="font-label-sm text-label-sm text-outline uppercase mb-1">Lý do ưu tiên</div><div class="font-body-md text-body-md text-on-surface">${esc(p.priorityReason||'Bệnh nhân ưu tiên')}</div></div>`:''}
+        </div>
+        <div class="mt-lg pt-4 border-t border-outline-variant/20 flex justify-end">
+            <button onclick="closePatientModal('${sid}')" class="px-5 py-2 bg-surface-container border border-outline-variant/40 rounded-lg font-data-mono text-data-mono text-on-surface hover:bg-surface-container-high transition-colors">Đóng</button>
+        </div>
+    </div>
+</div>`;
+}
+
+/* ---- toast ---- */
+let _toastTimer=null;
+function showToast(msg){
+    const t=document.getElementById('liveToast');
+    if(!t)return;
+    document.getElementById('liveToastMsg').textContent=msg;
+    t.classList.remove('hidden');
+    if(_toastTimer)clearTimeout(_toastTimer);
+    _toastTimer=setTimeout(()=>t.classList.add('hidden'),3200);
+}
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+document.addEventListener('DOMContentLoaded',function(){
+    const el=document.getElementById('dashboardData');
+    const selectedDate=el.dataset.selectedDate;
+    const isToday=el.dataset.isToday==='true';
+    const pollUrl=el.dataset.pollUrl;
+    const examineBase=el.dataset.examineBase;
+    const updatePriorityUrl=el.dataset.updatePriorityUrl;
+    const storeKey='dashboard_sess_'+selectedDate;
+
+    const [y,mo,d]=selectedDate.split('-');
+    const dateTxt=`${d}/${mo}/${y}`;
+
+    const liveStatus=document.getElementById('liveStatus');
+    function setLive(ok){
+        if(!liveStatus)return;
+        liveStatus.textContent=ok
+            ?'Cập nhật: '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+            :'Mất kết nối';
+    }
+
+    /* session filter */
+    let activeSession=isToday?(new Date().getHours()>=12?'afternoon':'morning'):
+                               (sessionStorage.getItem(storeKey)||'all');
+    const list=document.getElementById('appointmentList');
+    const emptyState=document.getElementById('clientEmptyState');
+    const sessBtns=Array.from(document.querySelectorAll('[data-session-filter]'));
+
+    function applyFilter(){
+        const rows=Array.from(list.querySelectorAll('.appointment-row'));
+        let v=0;
+        rows.forEach(r=>{
+            const match=activeSession==='all'||r.dataset.session===activeSession;
+            r.classList.toggle('is-hidden',!match);
+            if(match)v++;
+        });
+        if(emptyState)emptyState.classList.toggle('hidden',v>0||rows.length===0);
+    }
+    function setActiveBtn(val){
+        sessBtns.forEach(b=>b.classList.toggle('is-active',b.dataset.sessionFilter===val));
+    }
+    setActiveBtn(activeSession); applyFilter();
+    sessBtns.forEach(b=>b.addEventListener('click',function(){
+        activeSession=this.dataset.sessionFilter;
+        if(!isToday)sessionStorage.setItem(storeKey,activeSession);
+        setActiveBtn(activeSession); applyFilter();
+    }));
+
+    /* stats update */
+    function updateStats(s){
+        const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+        set('statTotal',s.total); set('statWaiting',s.waiting);
+        set('statCompleted',s.completed); set('statScheduled',s.scheduled);
+        document.querySelectorAll('.tab-total').forEach(e=>e.textContent=s.total);
+        document.querySelectorAll('.tab-morning').forEach(e=>e.textContent=s.morning);
+        document.querySelectorAll('.tab-afternoon').forEach(e=>e.textContent=s.afternoon);
+    }
+
+    /* DOM list update */
+    function updateList(appointments){
+        appointments = dedupeAppointments(appointments);
+        const existIds=new Set(Array.from(list.querySelectorAll('.appointment-row')).map(e=>e.dataset.appointmentId));
+        const newIds=new Set(appointments.map(a=>a.appointment_id));
+        /* remove stale */
+        existIds.forEach(id=>{
+            if(!newIds.has(id)){
+                const e=findAppointmentRow(id);
+                if(e)e.remove();
+            }
+        });
+        /* remove server empty */
+        list.querySelectorAll('.server-empty').forEach(e=>e.remove());
+        /* insert / replace */
+        appointments.forEach((p,i)=>{
+            const sid=slugify(p.appointment_id);
+            const existing=findAppointmentRow(p.appointment_id);
+            if(!existing){
+                const rows=list.querySelectorAll('.appointment-row');
+                if(i>=rows.length)list.insertAdjacentHTML('beforeend',buildCard(p,examineBase));
+                else rows[i].insertAdjacentHTML('beforebegin',buildCard(p,examineBase));
+            } else {
+                /* simple fingerprint to skip unchanged */
+                const fp=p.status_key+'|'+p.isPriority+'|'+p.name+'|'+p.time_display;
+                if(existing.dataset.fp!==fp){
+                    existing.dataset.fp=fp;
+                    const tmp=document.createElement('div');
+                    tmp.innerHTML=buildCard(p,examineBase);
+                    const newEl=tmp.firstElementChild;
+                    newEl.dataset.fp=fp;
+                    existing.replaceWith(newEl);
+                }
+            }
+        });
+        /* empty state */
+        if(list.querySelectorAll('.appointment-row').length===0&&!list.querySelector('.server-empty')){
+            list.innerHTML=`<div class="server-empty bg-surface-container-lowest/60 border border-outline-variant/30 rounded-xl p-8 text-center">
+<span class="material-symbols-outlined text-[48px] text-outline/30 block mb-3">event_busy</span>
+<h3 class="font-h3 text-h3 text-on-surface-variant mb-1">Chưa có lịch khám</h3>
+<p class="font-body-md text-body-md text-outline">Không tìm thấy lịch hẹn nào cho ngày đang chọn.</p></div>`;
+        }
+        /* update modals */
+        const mc=document.getElementById('patientModalsContainer');
+        if(mc)mc.innerHTML=appointments.map(p=>buildModal(p,dateTxt)).join('');
+        applyFilter();
+        bindPrio();
+    }
+
+    /* ---- poll ---- */
+    let snapshot=null;
+    const INTERVAL=isToday?15000:30000;
+
+    async function poll(){
+        try{
+            const r=await fetch(`${pollUrl}?date=${selectedDate}`,{credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});
+            if(!r.ok){setLive(false);return;}
+            const data=await r.json();
+            const snap=JSON.stringify(data.appointments);
+            if(snapshot!==null&&snapshot!==snap){
+                updateList(data.appointments);
+                updateStats(data.stats);
+                showToast('Lịch khám vừa được cập nhật');
+            } else if(snapshot===null){
+                updateStats(data.stats);
+                updateList(data.appointments);
+            }
+            snapshot=snap;
+            setLive(true);
+        }catch(e){setLive(false);}
+    }
+    poll();
+    setInterval(poll,INTERVAL);
+
+    /* ---- patient display window ---- */
+    const pdBtn=document.getElementById('openPatientDisplay');
+    if(pdBtn)pdBtn.addEventListener('click',function(e){
+        e.preventDefault();
+        window.open(this.href,'patientDisplayWindow','width=1080,height=720,menubar=no,toolbar=no,location=no');
+    });
+
+    /* ---- priority ---- */
+    const prioCust=document.getElementById('priorityCustom');
+    let curAptId='',curPatId='',curSessKey='';
+
+    function bindPrio(){
+        document.querySelectorAll('.priority-btn').forEach(b=>b.addEventListener('click',function(){
+            const aId=this.dataset.appointmentId,pId=this.dataset.patientId,
+                  sKey=this.dataset.sessionKey,isPrio=this.dataset.isPriority==='true';
+            if(!aId||!sKey){alert('Không tìm thấy lịch hẹn.');return;}
+            if(isPrio){togglePrio(aId,pId,sKey,false,'');return;}
+            curAptId=aId;curPatId=pId;curSessKey=sKey;
+            document.getElementById('priorityForm').reset();
+            if(prioCust){prioCust.value='';prioCust.classList.add('hidden');}
+            document.getElementById('priorityModal').classList.remove('hidden');
+        }));
+    }
+    bindPrio();
+
+    document.getElementById('priorityModal').addEventListener('change',function(e){
+        if(e.target.classList.contains('priority-option')&&prioCust)
+            prioCust.classList.toggle('hidden',e.target.value!=='Lý do khác');
+    });
+
+    document.getElementById('confirmPriorityBtn').addEventListener('click',function(){
+        const sel=document.querySelector('input[name="priorityReason"]:checked');
+        if(!sel){alert('Vui lòng chọn lý do ưu tiên.');return;}
+        let reason=sel.value;
+        if(reason==='Lý do khác'){
+            const cv=prioCust?prioCust.value.trim():'';
+            if(!cv){alert('Vui lòng nhập lý do ưu tiên.');return;}
+            reason=cv;
+        }
+        togglePrio(curAptId,curPatId,curSessKey,true,reason);
+        closePriorityModal();
+    });
+
+    function togglePrio(aptId,patId,sessKey,isPrio,reason){
+        fetch(updatePriorityUrl,{
+            method:'POST',
+            headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},
+            body:JSON.stringify({appointment_id:aptId,patient_id:patId,session_key:sessKey,is_priority:isPrio,priority_reason:reason})
+        }).then(r=>r.json()).then(d=>{
+            if(d.success)poll();
+            else alert('Lỗi: '+(d.message||'Không thể cập nhật.'));
+        }).catch(()=>alert('Lỗi kết nối.'));
+    }
+
+    function getCsrf(){
+        let v=null;
+        document.cookie.split(';').forEach(c=>{
+            const t=c.trim();
+            if(t.startsWith('csrftoken='))v=decodeURIComponent(t.slice(10));
+        });
+        return v;
+    }
+});
+</script>
+{% endblock %}
+    
